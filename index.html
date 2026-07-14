@@ -99,7 +99,7 @@
                     <label class="block text-sm font-medium text-gray-400 mb-1">Video File</label>
                     <input type="file" id="videoFile" accept="video/*" required class="w-full text-xs text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
                 </div>
-                <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 px-6 rounded-lg transition shadow-md w-full">
+                <button type="submit" id="submitBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 px-6 rounded-lg transition shadow-md w-full disabled:bg-gray-600 disabled:cursor-not-allowed">
                     Publish Movie
                 </button>
             </form>
@@ -125,6 +125,7 @@
         const roleBadge = document.getElementById('roleBadge');
         const adminUploadSection = document.getElementById('adminUploadSection');
         const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
         const videoGrid = document.getElementById('videoGrid');
         const searchBar = document.getElementById('searchBar');
         const genreFilter = document.getElementById('genreFilter');
@@ -134,9 +135,16 @@
         let isAdmin = false;
         let videoLibrary = [];
         let db = null;
-        let objectUrls = []; // Track active temporary video URLs to clear memory leaks
+        let objectUrls = [];
 
-        // Initialize IndexedDB (Crash-Proof database storage)
+        // Ask browser for high-capacity persistent storage permissions
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().then(granted => {
+                if (granted) console.log("Persistent storage granted by browser.");
+            });
+        }
+
+        // Initialize IndexedDB
         const dbName = "CineHubDatabase";
         const request = indexedDB.open(dbName, 1);
 
@@ -153,10 +161,11 @@
         };
 
         request.onerror = function() {
-            console.error("Database failed to open");
+            alert("Database error: Please make sure your browser supports local databases.");
         };
 
         function loadMoviesFromDB() {
+            if (!db) return;
             const transaction = db.transaction(["movies"], "readonly");
             const store = transaction.objectStore("movies");
             const getAllRequest = store.getAll();
@@ -209,7 +218,7 @@
             }
         });
 
-        // Fast & Safe Video Upload via Raw Blobs
+        // Crash-Proof Database Writer pipeline
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
             if (!isAdmin) return;
@@ -221,12 +230,16 @@
 
             if (!file) return;
 
+            // Change UI text to signal save progress
+            submitBtn.innerText = "Saving to Database...";
+            submitBtn.disabled = true;
+
             const newMovie = {
                 id: Date.now(),
                 name: nameInput.value.trim(),
                 genre: genreInput.value,
                 likes: 0,
-                videoBlob: file // Save the raw binary file directly (No memory spike!)
+                videoBlob: file
             };
 
             const transaction = db.transaction(["movies"], "readwrite");
@@ -237,6 +250,15 @@
                 videoLibrary.push(newMovie);
                 applyFilters();
                 uploadForm.reset();
+                submitBtn.innerText = "Publish Movie";
+                submitBtn.disabled = false;
+            };
+
+            transaction.onerror = function(event) {
+                submitBtn.innerText = "Publish Movie";
+                submitBtn.disabled = false;
+                console.error("Storage error:", event.target.error);
+                alert("Storage Error: The file might be too big for your phone's browser storage quota. Try a smaller video clip!");
             };
         });
 
@@ -256,12 +278,9 @@
             renderGallery(matches);
         }
 
-        // Render Cards Matrix securely without memory leakage
         function renderGallery(movies) {
-            // Revoke old object URLs to free up system device RAM memory
             objectUrls.forEach(url => URL.revokeObjectURL(url));
             objectUrls = [];
-
             videoGrid.innerHTML = '';
             
             if (movies.length === 0) {
@@ -271,7 +290,6 @@
             noVideosMessage.classList.add('hidden');
 
             movies.forEach(movie => {
-                // Generate a temporary execution pointer stream URL for the video player element
                 const videoUrl = URL.createObjectURL(movie.videoBlob);
                 objectUrls.push(videoUrl);
 
@@ -295,16 +313,13 @@
                         </div>
                         
                         <div class="space-y-3 pt-2 border-t border-gray-700/60">
-                            <!-- Interaction Row -->
                             <div class="flex items-center justify-between gap-2">
                                 <button onclick="likeMovie(${movie.id})" class="flex items-center gap-1.5 text-xs text-gray-300 hover:text-pink-400 transition bg-gray-700/50 hover:bg-gray-700 px-2.5 py-1.5 rounded-lg border border-gray-600/50 cursor-pointer">
                                     ❤️ <span class="font-bold">${movie.likes}</span> Likes
                                 </button>
-                                
                                 ${adminActionElement}
                             </div>
                             
-                            <!-- Download Block -->
                             <div class="flex items-center gap-2">
                                 <select id="res-${movie.id}" class="bg-gray-700 text-xs text-gray-200 rounded px-2 py-1.5 border border-gray-600 focus:outline-none w-full cursor-pointer">
                                     <option value="360p">360p (SD)</option>
@@ -322,35 +337,26 @@
             });
         }
 
-        // Global Operations hooks updated for database records mapping
         window.likeMovie = function(id) {
             const index = videoLibrary.findIndex(m => m.id === id);
             if (index !== -1) {
                 videoLibrary[index].likes += 1;
-                
                 const transaction = db.transaction(["movies"], "readwrite");
                 const store = transaction.objectStore("movies");
                 store.put(videoLibrary[index]);
-                
                 applyFilters();
             }
         };
 
         window.deleteMovie = function(id) {
             if (!isAdmin) return;
-            
             const transaction = db.transaction(["movies"], "readwrite");
             const store = transaction.objectStore("movies");
             const deleteRequest = store.delete(id);
 
             deleteRequest.onsuccess = function() {
-                // FIXED: Filter local cache array directly inside success block
                 videoLibrary = videoLibrary.filter(m => m.id !== id);
                 applyFilters();
-            };
-            
-            deleteRequest.onerror = function() {
-                console.error("Could not complete removal process inside IndexedDB.");
             };
         };
 
@@ -368,8 +374,6 @@
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             document.body.removeChild(downloadAnchor);
-            
-            // Instantly clear memory link pointer reference allocation
             setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
         };
     </script>
