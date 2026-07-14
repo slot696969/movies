@@ -136,6 +136,9 @@
         let videoLibrary = [];
         let db = null;
         let objectUrls = [];
+        
+        // Track liked items in localStorage so single users cannot click multiple times
+        let likedMovies = JSON.parse(localStorage.getItem('cinehub_liked_movies')) || [];
 
         // Ask browser for high-capacity persistent storage permissions
         if (navigator.storage && navigator.storage.persist) {
@@ -200,7 +203,8 @@
             const idInput = document.getElementById('adminId').value;
             const passInput = document.getElementById('adminPassword').value;
 
-            if (idInput === "slot69" && passInput === "slot696969") {
+            // UPDATED CONFIG: Modified authentication password parameters
+            if (idInput === "slot69" && passInput === "25801@Yeasin") {
                 isAdmin = true;
                 loginModal.classList.add('hidden');
                 document.getElementById('adminId').value = '';
@@ -300,6 +304,12 @@
                     ? `<button onclick="deleteMovie(${movie.id})" class="text-xs text-rose-400 hover:text-rose-300 font-semibold border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 rounded-md transition cursor-pointer">Delete Video</button>`
                     : ``;
 
+                // Conditional styles for styling liked buttons dynamically
+                const hasLiked = likedMovies.includes(movie.id);
+                const likeBtnClass = hasLiked 
+                    ? "flex items-center gap-1.5 text-xs text-pink-400 bg-pink-500/10 px-2.5 py-1.5 rounded-lg border border-pink-500/40 cursor-not-allowed"
+                    : "flex items-center gap-1.5 text-xs text-gray-300 hover:text-pink-400 transition bg-gray-700/50 hover:bg-gray-700 px-2.5 py-1.5 rounded-lg border border-gray-600/50 cursor-pointer";
+
                 card.innerHTML = `
                     <div class="relative aspect-video bg-black">
                         <video src="${videoUrl}" controls class="w-full h-full object-contain"></video>
@@ -314,8 +324,8 @@
                         
                         <div class="space-y-3 pt-2 border-t border-gray-700/60">
                             <div class="flex items-center justify-between gap-2">
-                                <button onclick="likeMovie(${movie.id})" class="flex items-center gap-1.5 text-xs text-gray-300 hover:text-pink-400 transition bg-gray-700/50 hover:bg-gray-700 px-2.5 py-1.5 rounded-lg border border-gray-600/50 cursor-pointer">
-                                    ❤️ <span class="font-bold">${movie.likes}</span> Likes
+                                <button onclick="likeMovie(${movie.id})" ${hasLiked ? 'disabled' : ''} class="${likeBtnClass}">
+                                    ❤️ <span class="font-bold">${movie.likes}</span> ${hasLiked ? 'Liked' : 'Likes'}
                                 </button>
                                 ${adminActionElement}
                             </div>
@@ -337,10 +347,18 @@
             });
         }
 
+        // UPDATED: Like processing pipeline prevents duplicate votes per user device session
         window.likeMovie = function(id) {
+            if (likedMovies.includes(id)) return; // Stop if already liked
+
             const index = videoLibrary.findIndex(m => m.id === id);
             if (index !== -1) {
                 videoLibrary[index].likes += 1;
+                
+                // Add to liked array tracking stack & save state
+                likedMovies.push(id);
+                localStorage.setItem('cinehub_liked_movies', JSON.stringify(likedMovies));
+                
                 const transaction = db.transaction(["movies"], "readwrite");
                 const store = transaction.objectStore("movies");
                 store.put(videoLibrary[index]);
@@ -356,6 +374,9 @@
 
             deleteRequest.onsuccess = function() {
                 videoLibrary = videoLibrary.filter(m => m.id !== id);
+                // Also clean up local storage arrays if matching items are dropped by admins
+                likedMovies = likedMovies.filter(likedId => likedId !== id);
+                localStorage.setItem('cinehub_liked_movies', JSON.stringify(likedMovies));
                 applyFilters();
             };
         };
