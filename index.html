@@ -279,7 +279,7 @@
                 card.className = "bg-gray-800 rounded-xl overflow-hidden border border-gray-700/70 shadow-xl flex flex-col justify-between";
                 
                 const adminActionElement = isAdmin 
-                    ? `<button onclick="deleteMovie(${movie.id})" class="text-xs text-rose-400 hover:text-rose-300 font-semibold border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 rounded-md transition">Delete Video</button>`
+                    ? `<button onclick="deleteMovie(${movie.id})" class="text-xs text-rose-400 hover:text-rose-300 font-semibold border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 rounded-md transition cursor-pointer">Delete Video</button>`
                     : ``;
 
                 card.innerHTML = `
@@ -297,7 +297,7 @@
                         <div class="space-y-3 pt-2 border-t border-gray-700/60">
                             <!-- Interaction Row -->
                             <div class="flex items-center justify-between gap-2">
-                                <button onclick="likeMovie(${movie.id})" class="flex items-center gap-1.5 text-xs text-gray-300 hover:text-pink-400 transition bg-gray-700/50 hover:bg-gray-700 px-2.5 py-1.5 rounded-lg border border-gray-600/50">
+                                <button onclick="likeMovie(${movie.id})" class="flex items-center gap-1.5 text-xs text-gray-300 hover:text-pink-400 transition bg-gray-700/50 hover:bg-gray-700 px-2.5 py-1.5 rounded-lg border border-gray-600/50 cursor-pointer">
                                     ❤️ <span class="font-bold">${movie.likes}</span> Likes
                                 </button>
                                 
@@ -311,7 +311,7 @@
                                     <option value="720p">720p (HD)</option>
                                     <option value="1080p">1080p (FHD)</option>
                                 </select>
-                                <button onclick="downloadMovie(${movie.id})" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-xs font-semibold px-3 py-1.5 rounded transition whitespace-nowrap">
+                                <button onclick="downloadMovie(${movie.id})" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-500/30 text-xs font-semibold px-3 py-1.5 rounded transition whitespace-nowrap cursor-pointer">
                                     ⬇️ Download
                                 </button>
                             </div>
@@ -344,8 +344,13 @@
             const deleteRequest = store.delete(id);
 
             deleteRequest.onsuccess = function() {
+                // FIXED: Filter local cache array directly inside success block
                 videoLibrary = videoLibrary.filter(m => m.id !== id);
                 applyFilters();
+            };
+            
+            deleteRequest.onerror = function() {
+                console.error("Could not complete removal process inside IndexedDB.");
             };
         };
 
