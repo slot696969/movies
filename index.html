@@ -418,7 +418,7 @@
             renderMusic(cleanMusic);
         }
 
-        // Render Method: Cinema Modules
+        // Render Method: Cinema Modules (Delete elements permanently removed)
         function renderVideos(movies) {
             videoGrid.innerHTML = '';
             movies.forEach(movie => {
@@ -436,7 +436,6 @@
                         <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
                             <button onclick="likeRecord('movies', ${movie.id})" ${hasLiked?'disabled':''} class="text-xs ${hasLiked?'text-pink-400 bg-pink-500/10 border-pink-500/20':'text-emerald-400 bg-emerald-950/40 border-emerald-500/20 hover:bg-emerald-900/40'} px-3 py-1.5 rounded-xl border font-bold transition duration-200">❤️ ${movie.likes}</button>
                             <div class="flex items-center gap-2">
-                                ${isAdmin ? `<button onclick="deleteRecord('movies', ${movie.id})" class="text-xs text-rose-400 hover:text-rose-300 bg-rose-500/10 px-2.5 py-1.5 rounded-xl border border-rose-500/20 transition">Delete</button>` : ''}
                                 <a href="${url}" download="${movie.name}.mp4" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-black px-4 py-2 rounded-xl transition shadow-md">Download</a>
                             </div>
                         </div>
@@ -445,7 +444,7 @@
             });
         }
 
-        // Render Method: Application Packages
+        // Render Method: Application Packages (Delete elements permanently removed)
         function renderApks(apks) {
             apkGrid.innerHTML = '';
             apks.forEach(apk => {
@@ -464,7 +463,6 @@
                     <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
                         <button onclick="likeRecord('apks', ${apk.id})" ${hasLiked?'disabled':''} class="text-xs font-bold ${hasLiked?'text-pink-400':'text-cyan-400 hover:text-cyan-300'} transition">❤️ ${apk.likes}</button>
                         <div class="flex items-center gap-2">
-                            ${isAdmin ? `<button onclick="deleteRecord('apks', ${apk.id})" class="text-[11px] text-rose-400 hover:text-rose-300 transition">Delete</button>` : ''}
                             <a href="${url}" download="${apk.name}.apk" class="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 text-xs font-black px-3 py-1.5 rounded-xl transition shadow-md">Get APK</a>
                         </div>
                     </div>`;
@@ -472,7 +470,7 @@
             });
         }
 
-        // Render Method: Audio Compilations
+        // Render Method: Audio Compilations (Delete elements permanently removed)
         function renderMusic(musics) {
             musicGrid.innerHTML = '';
             musics.forEach(music => {
@@ -494,7 +492,6 @@
                     <div class="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto border-t md:border-t-0 border-slate-800/80 pt-3 md:pt-0">
                         <button onclick="likeRecord('musics', ${music.id})" ${hasLiked?'disabled':''} class="text-xs font-bold ${hasLiked?'text-pink-400':'text-slate-400 hover:text-pink-300'} transition">❤️ ${music.likes}</button>
                         <div class="flex items-center gap-3">
-                            ${isAdmin ? `<button onclick="deleteRecord('musics', ${music.id})" class="text-xs text-rose-400 hover:text-rose-300 transition">Delete</button>` : ''}
                             <a href="${url}" download="${music.name}.mp3" class="text-xs text-pink-400 font-bold hover:underline tracking-wider">Download</a>
                         </div>
                     </div>`;
@@ -516,21 +513,6 @@
                 
                 db.transaction([storeName], "readwrite").objectStore(storeName).put(lib[idx]).onsuccess = () => applyFilters();
             }
-        };
-
-        // Operations: Delete Asset Operations Pipeline
-        window.deleteRecord = function(storeName, id) {
-            if (!isAdmin) return;
-            
-            db.transaction([storeName], "readwrite").objectStore(storeName).delete(id).onsuccess = function() {
-                if(storeName === 'movies') videoLibrary = videoLibrary.filter(m => m.id !== id);
-                if(storeName === 'apks') apkLibrary = apkLibrary.filter(a => a.id !== id);
-                if(storeName === 'musics') musicLibrary = musicLibrary.filter(m => m.id !== id);
-                
-                likedItems = likedItems.filter(itemId => itemId !== id);
-                localStorage.setItem('cinehub_liked_items', JSON.stringify(likedItems));
-                applyFilters();
-            };
         };
     </script>
 </body>
