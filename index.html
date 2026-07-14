@@ -18,14 +18,12 @@
                 <h1 class="text-3xl font-extrabold text-indigo-400 tracking-wide whitespace-nowrap">🎬 CineHub</h1>
                 
                 <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
-                    <!-- Expanded search bar size -->
                     <input 
                         type="text" 
                         id="searchBar" 
                         placeholder="Search movies..." 
                         class="w-full md:max-w-md bg-gray-700 text-white placeholder-gray-400 rounded-xl px-5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-600 shadow-inner"
                     >
-                    <!-- Expanded genre dropdown size -->
                     <select 
                         id="genreFilter" 
                         class="w-full sm:w-56 bg-gray-700 text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-600 cursor-pointer shadow-inner"
@@ -40,7 +38,7 @@
                 </div>
             </div>
             
-            <!-- Right Side: COMPACT/SMALLER Admin Controls Area -->
+            <!-- Right Side: COMPACT Admin Controls Area -->
             <div class="flex items-center gap-2 justify-end w-full lg:w-auto border-t lg:border-t-0 border-gray-700 pt-4 lg:pt-0">
                 <span id="roleBadge" class="bg-gray-700 text-[10px] text-gray-400 font-medium px-2 py-0.5 rounded border border-gray-600 whitespace-nowrap">Guest</span>
                 <button 
@@ -77,7 +75,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         
-        <!-- Upload Section (Hidden for Guests, visible to Admin) -->
+        <!-- Upload Section (Visible to Admin Only) -->
         <section id="adminUploadSection" class="hidden bg-gray-800 p-6 rounded-xl border border-indigo-900/50 shadow-md">
             <h2 class="text-xl font-semibold mb-4 text-indigo-300 flex items-center gap-2">
                 <span>⚡ Admin Control Panel: Upload Video</span>
@@ -135,20 +133,43 @@
         // State Management
         let isAdmin = false;
         let videoLibrary = [];
+        let db = null;
+        let objectUrls = []; // Track active temporary video URLs to clear memory leaks
 
-        // App Initializer
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedVideos = localStorage.getItem('cinehub_library');
-            if (savedVideos) {
-                videoLibrary = JSON.parse(savedVideos);
+        // Initialize IndexedDB (Crash-Proof database storage)
+        const dbName = "CineHubDatabase";
+        const request = indexedDB.open(dbName, 1);
+
+        request.onupgradeneeded = function(e) {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("movies")) {
+                db.createObjectStore("movies", { keyPath: "id" });
             }
-            applyFilters();
-        });
+        };
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            loadMoviesFromDB();
+        };
+
+        request.onerror = function() {
+            console.error("Database failed to open");
+        };
+
+        function loadMoviesFromDB() {
+            const transaction = db.transaction(["movies"], "readonly");
+            const store = transaction.objectStore("movies");
+            const getAllRequest = store.getAll();
+
+            getAllRequest.onsuccess = function() {
+                videoLibrary = getAllRequest.result || [];
+                applyFilters();
+            };
+        }
 
         // Authentication Event Handlers
         authBtn.addEventListener('click', () => {
             if (isAdmin) {
-                // Log Out
                 isAdmin = false;
                 authBtn.innerText = "Admin Login";
                 authBtn.className = "bg-indigo-600 hover:bg-indigo-500 text-xs font-medium py-1 px-2.5 rounded transition whitespace-nowrap cursor-pointer shadow-sm";
@@ -177,7 +198,6 @@
                 document.getElementById('adminPassword').value = '';
                 document.getElementById('loginError').classList.add('hidden');
                 
-                // Update UI for Admin (keeps the small compact size layout structure)
                 authBtn.innerText = "Log Out";
                 authBtn.className = "bg-rose-600 hover:bg-rose-500 text-xs font-medium py-1 px-2.5 rounded transition whitespace-nowrap cursor-pointer shadow-sm";
                 roleBadge.innerText = "Admin Access";
@@ -189,7 +209,7 @@
             }
         });
 
-        // Video Upload Engine
+        // Fast & Safe Video Upload via Raw Blobs
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
             if (!isAdmin) return;
@@ -201,25 +221,25 @@
 
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const newMovie = {
-                    id: Date.now(),
-                    name: nameInput.value.trim(),
-                    genre: genreInput.value,
-                    likes: 0,
-                    dataUrl: event.target.result
-                };
+            const newMovie = {
+                id: Date.now(),
+                name: nameInput.value.trim(),
+                genre: genreInput.value,
+                likes: 0,
+                videoBlob: file // Save the raw binary file directly (No memory spike!)
+            };
 
+            const transaction = db.transaction(["movies"], "readwrite");
+            const store = transaction.objectStore("movies");
+            const addRequest = store.add(newMovie);
+
+            addRequest.onsuccess = function() {
                 videoLibrary.push(newMovie);
-                saveData();
                 applyFilters();
                 uploadForm.reset();
             };
-            reader.readAsDataURL(file);
         });
 
-        // Search and Filtering Core logic
         searchBar.addEventListener('input', applyFilters);
         genreFilter.addEventListener('change', applyFilters);
 
@@ -236,8 +256,12 @@
             renderGallery(matches);
         }
 
-        // Render Cards Matrix
+        // Render Cards Matrix securely without memory leakage
         function renderGallery(movies) {
+            // Revoke old object URLs to free up system device RAM memory
+            objectUrls.forEach(url => URL.revokeObjectURL(url));
+            objectUrls = [];
+
             videoGrid.innerHTML = '';
             
             if (movies.length === 0) {
@@ -247,6 +271,10 @@
             noVideosMessage.classList.add('hidden');
 
             movies.forEach(movie => {
+                // Generate a temporary execution pointer stream URL for the video player element
+                const videoUrl = URL.createObjectURL(movie.videoBlob);
+                objectUrls.push(videoUrl);
+
                 const card = document.createElement('div');
                 card.className = "bg-gray-800 rounded-xl overflow-hidden border border-gray-700/70 shadow-xl flex flex-col justify-between";
                 
@@ -256,7 +284,7 @@
 
                 card.innerHTML = `
                     <div class="relative aspect-video bg-black">
-                        <video src="${movie.dataUrl}" controls class="w-full h-full object-contain"></video>
+                        <video src="${videoUrl}" controls class="w-full h-full object-contain"></video>
                         <span class="absolute top-2 left-2 bg-indigo-600/90 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shadow">
                             ${movie.genre}
                         </span>
@@ -294,21 +322,31 @@
             });
         }
 
-        // Global Operations hooks
+        // Global Operations hooks updated for database records mapping
         window.likeMovie = function(id) {
             const index = videoLibrary.findIndex(m => m.id === id);
             if (index !== -1) {
                 videoLibrary[index].likes += 1;
-                saveData();
+                
+                const transaction = db.transaction(["movies"], "readwrite");
+                const store = transaction.objectStore("movies");
+                store.put(videoLibrary[index]);
+                
                 applyFilters();
             }
         };
 
         window.deleteMovie = function(id) {
             if (!isAdmin) return;
-            videoLibrary = videoLibrary.filter(m => m.id !== id);
-            saveData();
-            applyFilters();
+            
+            const transaction = db.transaction(["movies"], "readwrite");
+            const store = transaction.objectStore("movies");
+            const deleteRequest = store.delete(id);
+
+            deleteRequest.onsuccess = function() {
+                videoLibrary = videoLibrary.filter(m => m.id !== id);
+                applyFilters();
+            };
         };
 
         window.downloadMovie = function(id) {
@@ -318,17 +356,17 @@
             const targetSelect = document.getElementById(`res-${id}`);
             const selectedResolution = targetSelect ? targetSelect.value : "720p";
 
+            const downloadUrl = URL.createObjectURL(movie.videoBlob);
             const downloadAnchor = document.createElement('a');
-            downloadAnchor.href = movie.dataUrl;
+            downloadAnchor.href = downloadUrl;
             downloadAnchor.download = `${movie.name.replace(/\s+/g, '_')}_[${selectedResolution}].mp4`;
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             document.body.removeChild(downloadAnchor);
+            
+            // Instantly clear memory link pointer reference allocation
+            setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
         };
-
-        function saveData() {
-            localStorage.setItem('cinehub_library', JSON.stringify(videoLibrary));
-        }
     </script>
 </body>
 </html>
