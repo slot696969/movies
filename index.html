@@ -383,3 +383,20 @@
 
         window.downloadMovie = function(id) {
             const movie = videoLibrary.find(m => m.id === id);
+            if (!movie) return;
+
+            const targetSelect = document.getElementById(`res-${id}`);
+            const selectedResolution = targetSelect ? targetSelect.value : "720p";
+
+            const downloadUrl = URL.createObjectURL(movie.videoBlob);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = downloadUrl;
+            downloadAnchor.download = `${movie.name.replace(/\s+/g, '_')}_[${selectedResolution}].mp4`;
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            document.body.removeChild(downloadAnchor);
+            setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
+        };
+    </script>
+</body>
+</html>
