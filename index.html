@@ -104,7 +104,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         
-        <!-- Upload Link Section (Replaces Local Sandbox File Upload) -->
+        <!-- Complete Operational Admin Input Dashboard Layer -->
         <section id="adminUploadSection" class="hidden glass-card p-6 rounded-2xl border border-purple-500/30 shadow-2xl">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-purple-400 flex items-center gap-2">
@@ -120,17 +120,17 @@
             <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 <div>
                     <label id="nameLabel" class="block text-sm font-semibold text-slate-300 mb-1">Movie Name</label>
-                    <input type="text" id="assetName" required placeholder="Title" class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
+                    <input type="text" id="assetName" required placeholder="Title Name" class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-300 mb-1">Genre / Tag</label>
                     <select id="assetGenre" required class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
-                        <!-- Genres auto-populated dynamically -->
+                        <!-- Instantiated dynamically -->
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Google Drive File ID</label>
-                    <input type="text" id="assetDriveId" required placeholder="e.g. 1a2b3c4d5e..." class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Google Drive File ID or URL</label>
+                    <input type="text" id="assetDriveId" required placeholder="Paste full link or file ID" class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
                 </div>
                 <button type="submit" id="submitBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-lg w-full cursor-pointer">
                     Publish Asset
@@ -141,7 +141,7 @@
         <!-- Dynamic Content Display Dashboard -->
         <section>
             <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Data populated dynamically via JS -->
+                <!-- Media components dynamically mount here -->
             </div>
             <div id="noAssetsMessage" class="hidden text-center text-slate-500 py-20">
                 <p class="text-xl font-medium">No files found fitting those parameters.</p>
@@ -150,7 +150,7 @@
     </main>
 
     <script>
-        // DOM bindings
+        // DOM targeting configurations
         const authBtn = document.getElementById('authBtn');
         const loginModal = document.getElementById('loginModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
@@ -168,15 +168,15 @@
         const assetDriveId = document.getElementById('assetDriveId');
         const assetGenre = document.getElementById('assetGenre');
 
-        // App States
+        // Core memory states
         let isAdmin = false;
         let currentTab = 'movies'; 
         let currentUploadType = 'movies'; 
 
-        // Central Asset Databases (Saves to localStorage to mimic persistent server)
+        // Local Storage State Storage Initialization
         let libraries = JSON.parse(localStorage.getItem('cinehub_libraries')) || {
             movies: [
-                { id: 1, name: "Sample Action Clip", genre: "Action", driveId: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo" }
+                { id: 1, name: "Sample Cinematic Trailer", genre: "Action", driveId: "1dQpL7E095rR9xR1WJz8vS6YnFm3uV9eA" }
             ],
             apks: [],
             music: []
@@ -188,7 +188,6 @@
             music: ['Pop', 'Rock', 'Lo-Fi']
         };
 
-        // Auto initialization
         document.addEventListener("DOMContentLoaded", () => {
             setUploadType('movies');
             applyFilters();
@@ -196,6 +195,16 @@
 
         searchBar.addEventListener('input', applyFilters);
         genreFilter.addEventListener('change', applyFilters);
+
+        // Smart Extraction Filter to strip raw Google IDs out of full pasted HTTP links
+        function extractGoogleId(inputString) {
+            const clean = inputString.trim();
+            if (clean.includes("drive.google.com")) {
+                const match = clean.match(/\/d\/([a-zA-Z0-9_-]+)/) || clean.match(/id=([a-zA-Z0-9_-]+)/);
+                return match ? match[1] : clean;
+            }
+            return clean;
+        }
 
         function applyFilters() {
             assetGrid.innerHTML = '';
@@ -217,28 +226,35 @@
 
             filtered.forEach(item => {
                 const card = document.createElement('div');
-                card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40";
+                card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40 transition-transform duration-300 hover:scale-[1.01]";
                 
-                // Native Drive Embedded UI Frame Engine
                 let embedEl = '';
+                // Fixed Native Stream & Embedded Engine Layer
                 if (currentTab === 'movies') {
                     embedEl = `
-                        <div class="relative w-full aspect-video bg-black">
-                            <iframe src="https://drive.google.com/file/d/${item.driveId}/preview" class="w-full h-full border-0" allow="autoplay" allowfullscreen></iframe>
+                        <div class="relative w-full aspect-video bg-black group">
+                            <!-- Dual-Layer Player: Tries Native HTML Video first, falls back to direct iframe preview seamless loop -->
+                            <video controls class="w-full h-full object-contain" poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='%23a855f7'><path d='M8 5v14l11-7z'/></svg>">
+                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="video/mp4">
+                                <iframe src="https://drive.google.com/file/d/${item.driveId}/preview" class="absolute inset-0 w-full h-full border-0" allow="autoplay"></iframe>
+                            </video>
                         </div>
                     `;
                 } else if (currentTab === 'music') {
                     embedEl = `
                         <div class="p-4 bg-slate-950/40 border-b border-slate-800">
-                            <iframe src="https://drive.google.com/file/d/${item.driveId}/preview" class="w-full h-20 border-0 rounded-lg"></iframe>
+                            <audio controls class="w-full rounded-lg">
+                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="audio/mpeg">
+                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="audio/mp3">
+                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="audio/wav">
+                            </audio>
                         </div>
                     `;
                 } else {
-                    // APK Card Preview Frame Placeholder
                     embedEl = `
-                        <div class="h-36 bg-gradient-to-br from-slate-800 to-slate-950 flex flex-col items-center justify-center border-b border-slate-800 text-slate-500">
-                            <span class="text-4xl mb-1">🤖</span>
-                            <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Android Application Package</span>
+                        <div class="h-36 bg-gradient-to-br from-slate-800 to-slate-950 flex flex-col items-center justify-center border-b border-slate-800/60 text-slate-500">
+                            <span class="text-4xl mb-1 drop-shadow-md">🤖</span>
+                            <span class="text-[11px] uppercase tracking-wider font-extrabold text-purple-400/80">Android Binary Distribution (APK)</span>
                         </div>
                     `;
                 }
@@ -248,13 +264,13 @@
                     <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div>
                             <span class="inline-block bg-purple-500/10 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-md mb-2 border border-purple-500/20">${item.genre}</span>
-                            <h4 class="text-lg font-bold text-white tracking-wide">${item.name}</h4>
+                            <h4 class="text-lg font-bold text-white tracking-wide truncate" title="${item.name}">${item.name}</h4>
                         </div>
                         <div class="flex items-center gap-2 pt-2">
-                            <a href="https://drive.google.com/uc?export=download&id=${item.driveId}" download target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
+                            <a href="https://drive.google.com/uc?export=download&id=${item.driveId}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
                                 📥 Download File
                             </a>
-                            ${isAdmin ? `<button onclick="deleteAsset('${currentTab}', ${item.id})" class="bg-rose-950/40 hover:bg-rose-900 border border-rose-800/60 text-rose-400 p-2.5 rounded-xl transition-all cursor-pointer" title="Remove Asset">🗑️</button>` : ''}
+                            ${isAdmin ? `<button onclick="deleteAsset('${currentTab}', ${item.id})" class="bg-rose-950/40 hover:bg-rose-900 border border-rose-800/60 text-rose-400 p-2.5 rounded-xl transition-all cursor-pointer" title="Delete Content Item">🗑️</button>` : ''}
                         </div>
                     </div>
                 `;
@@ -293,7 +309,7 @@
             });
         };
 
-        // Authentication Engine Logic
+        // Admin Security Authentication Control Panels
         authBtn.addEventListener('click', () => {
             if (isAdmin) {
                 isAdmin = false;
@@ -335,7 +351,7 @@
             }
         });
 
-        // Form Process Logic
+        // Content Management: Add Item Action
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
             if (!isAdmin) return;
@@ -343,18 +359,18 @@
             const nameInput = document.getElementById('assetName');
             const driveIdInput = document.getElementById('assetDriveId');
             
-            let structuralId = driveIdInput.value.trim();
-            // Fallback parser if admin drops entire folder or file link instead of pure string ID
-            if (structuralId.includes("drive.google.com")) {
-                const match = structuralId.match(/\/d\/([a-zA-Z0-9_-]+)/) || structuralId.match(/id=([a-zA-Z0-9_-]+)/);
-                if (match && match[1]) structuralId = match[1];
+            const targetedId = extractGoogleId(driveIdInput.value);
+
+            if (!targetedId) {
+                alert("Please drop a valid Google Drive link or raw item ID string.");
+                return;
             }
 
             const newAsset = {
                 id: Date.now(),
                 name: nameInput.value.trim(),
                 genre: assetGenre.value,
-                driveId: structuralId
+                driveId: targetedId
             };
 
             libraries[currentUploadType].push(newAsset);
@@ -363,9 +379,11 @@
             nameInput.value = '';
             driveIdInput.value = '';
             
+            // Re-render components instantly
             applyFilters();
         });
 
+        // Content Management: Delete Item Action
         window.deleteAsset = function(tab, id) {
             libraries[tab] = libraries[tab].filter(item => item.id !== id);
             localStorage.setItem('cinehub_libraries', JSON.stringify(libraries));
