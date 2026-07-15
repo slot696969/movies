@@ -52,7 +52,7 @@
     </header>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-        <div id="loadingStatus" class="text-center text-purple-400 py-4 font-semibold tracking-wide">Parsing Drive files directly...</div>
+        <div id="loadingStatus" class="text-center text-purple-400 py-4 font-semibold tracking-wide">Syncing securely with deployment database...</div>
 
         <section>
             <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -63,7 +63,8 @@
     </main>
 
     <script>
-        const FOLDER_ID = "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo";
+        // Replace this with your copied Web App link from Google Script
+        const SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE"; 
 
         let currentTab = 'movies';
         let allAssets = { movies: [], apks: [], music: [] };
@@ -77,22 +78,11 @@
         searchBar.addEventListener('input', renderAssets);
         genreFilter.addEventListener('change', renderAssets);
 
-        // Bypasses the broken Google API Engine completely via public data structures
         async function fetchDriveFiles() {
-            const url = `https://docs.google.com/gestalt/f/${FOLDER_ID}/data?client=web`;
             try {
-                const response = await fetch(url);
-                const text = await response.text();
+                const response = await fetch(SCRIPT_URL);
+                const files = await response.json();
                 
-                // Security envelope parsing protection clean up
-                const cleanJson = JSON.parse(text.replace(")]}'\n", ""));
-                const files = cleanJson.contents || [];
-
-                if (files.length === 0) {
-                    loadingStatus.innerText = "Error: Folder appears completely empty.";
-                    return;
-                }
-
                 allAssets = { movies: [], apks: [], music: [] };
 
                 files.forEach(file => {
@@ -103,22 +93,22 @@
                     if (file.name.toLowerCase().includes('[movie]')) {
                         cleanName = file.name.replace(/\[movie\]/i, '').trim();
                         genre = "Action"; 
-                        allAssets.movies.push({ id: file.id, name: cleanName, genre: genre, mime: mime });
+                        allAssets.movies.push({ id: file.id, name: cleanName, genre: genre });
                     } else if (file.name.toLowerCase().includes('[apk]')) {
                         cleanName = file.name.replace(/\[apk\]/i, '').trim();
                         genre = "Games";
-                        allAssets.apks.push({ id: file.id, name: cleanName, genre: genre, mime: mime });
+                        allAssets.apks.push({ id: file.id, name: cleanName, genre: genre });
                     } else if (file.name.toLowerCase().includes('[music]')) {
                         cleanName = file.name.replace(/\[music\]/i, '').trim();
                         genre = "Music Track";
-                        allAssets.music.push({ id: file.id, name: cleanName, genre: genre, mime: mime });
+                        allAssets.music.push({ id: file.id, name: cleanName, genre: genre });
                     } else {
                         if (mime.includes('video')) {
-                            allAssets.movies.push({ id: file.id, name: cleanName, genre: "Drama", mime: mime });
+                            allAssets.movies.push({ id: file.id, name: cleanName, genre: "Drama" });
                         } else if (file.name.endsWith('.apk')) {
-                            allAssets.apks.push({ id: file.id, name: cleanName, genre: "Tools", mime: mime });
+                            allAssets.apks.push({ id: file.id, name: cleanName, genre: "Tools" });
                         } else if (mime.includes('audio')) {
-                            allAssets.music.push({ id: file.id, name: cleanName, genre: "Music Track", mime: mime });
+                            allAssets.music.push({ id: file.id, name: cleanName, genre: "Music Track" });
                         }
                     }
                 });
@@ -126,7 +116,7 @@
                 loadingStatus.classList.add('hidden');
                 renderAssets();
             } catch (error) {
-                loadingStatus.innerText = "Error: Failed to bypass API block. Make sure folder is shared to Anyone with Link.";
+                loadingStatus.innerText = "Deployment integration offline. Check script permissions.";
                 console.error(error);
             }
         }
