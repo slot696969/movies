@@ -66,8 +66,8 @@
     </main>
 
     <script>
-        // INSERT YOUR KEYS HERE
-        const API_KEY = "PASTE_YOUR_COPIED_API_KEY_HERE"; 
+        // Verified Integration Parameters
+        const API_KEY = "AIzaSyB5P-SHtEjljY2JuTD74JRXSxI"; 
         const FOLDER_ID = "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo";
 
         let currentTab = 'movies';
@@ -94,14 +94,16 @@
                     return;
                 }
 
-                // Sorting Engine mapping tags to categories
+                // Clean sorting map engine
+                allAssets = { movies: [], apks: [], music: [] };
+
                 data.files.forEach(file => {
                     let cleanName = file.name;
                     let genre = "General";
 
                     if (file.name.toLowerCase().includes('[movie]')) {
                         cleanName = file.name.replace(/\[movie\]/i, '').trim();
-                        genre = "Action"; // Fallback default tag
+                        genre = "Action"; 
                         allAssets.movies.push({ id: file.id, name: cleanName, genre: genre });
                     } else if (file.name.toLowerCase().includes('[apk]')) {
                         cleanName = file.name.replace(/\[apk\]/i, '').trim();
@@ -112,7 +114,7 @@
                         genre = "Music Track";
                         allAssets.music.push({ id: file.id, name: cleanName, genre: genre });
                     } else {
-                        // Default sorting logic based on MIME Types if tags are missing
+                        // Fallback MIME engine mapping if tags are absent
                         if (file.mimeType.includes('video')) {
                             allAssets.movies.push({ id: file.id, name: cleanName, genre: "Drama" });
                         } else if (file.name.endsWith('.apk')) {
