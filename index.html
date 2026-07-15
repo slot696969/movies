@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineHub - Premium Media Library</title>
-    <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @keyframes rgbGradient {
@@ -29,188 +28,114 @@
     <!-- Header & Navigation -->
     <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50 p-4 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
-            
-            <!-- Left Side: App Logo & Controls -->
             <div class="flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto flex-1">
                 <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-wider whitespace-nowrap drop-shadow-sm">🎬 CineHub</h1>
-                
                 <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
-                    <input 
-                        type="text" 
-                        id="searchBar" 
-                        placeholder="Search assets..." 
-                        class="w-full md:max-w-md bg-slate-800/90 text-white placeholder-slate-400 rounded-xl px-5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 shadow-inner"
-                    >
-                    <select 
-                        id="genreFilter" 
-                        class="w-full sm:w-56 bg-slate-800/90 text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 cursor-pointer shadow-inner"
-                    >
-                        <option value="all">All Genres / Types</option>
-                        <option value="Romantic">Romantic</option>
-                        <option value="Psycho">Psycho</option>
-                        <option value="Comedy">Comedy</option>
+                    <input type="text" id="searchBar" placeholder="Search assets..." class="w-full md:max-w-md bg-slate-800/90 text-white placeholder-slate-400 rounded-xl px-5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 shadow-inner">
+                    <select id="genreFilter" class="w-full sm:w-56 bg-slate-800/90 text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 cursor-pointer shadow-inner">
+                        <option value="all">All Genres / Tags</option>
                         <option value="Action">Action</option>
                         <option value="Drama">Drama</option>
-                        <option value="Tools">Tools (APK)</option>
-                        <option value="Games">Games (APK)</option>
-                        <option value="Pop">Pop (Music)</option>
-                        <option value="Rock">Rock (Music)</option>
-                        <option value="Lo-Fi">Lo-Fi (Music)</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Games">Games</option>
+                        <option value="Music Track">Music Track</option>
                     </select>
                 </div>
             </div>
             
-            <!-- Library Module Switcher -->
             <div class="flex gap-2 p-1 bg-slate-950/60 border border-slate-700/50 rounded-xl">
                 <button id="tab-movies" onclick="switchLibraryTab('movies')" class="px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition-all cursor-pointer">Movies</button>
                 <button id="tab-apks" onclick="switchLibraryTab('apks')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">APKs</button>
                 <button id="tab-music" onclick="switchLibraryTab('music')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Music</button>
             </div>
-            
-            <!-- Right Side: Compact Admin Controls Area -->
-            <div class="flex items-center gap-2 justify-end w-full lg:w-auto border-t lg:border-t-0 border-slate-700/50 pt-4 lg:pt-0">
-                <span id="roleBadge" class="bg-slate-800 text-[10px] text-slate-400 font-medium px-2 py-0.5 rounded border border-slate-700 whitespace-nowrap">Guest Mode</span>
-                <button 
-                    id="authBtn" 
-                    class="bg-purple-600 hover:bg-purple-500 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md"
-                >
-                    Admin Login
-                </button>
-            </div>
         </div>
     </header>
 
-    <!-- Admin Login Modal -->
-    <div id="loginModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md">
-        <div class="bg-slate-900 border border-slate-700/60 p-6 rounded-2xl shadow-2xl w-full max-w-sm">
-            <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-4">Admin Authentication</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Admin ID</label>
-                    <input type="text" id="adminId" class="w-full bg-slate-800 rounded-lg px-3 py-2 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-                    <input type="password" id="adminPassword" class="w-full bg-slate-800 rounded-lg px-3 py-2 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                <p id="loginError" class="text-xs text-rose-400 hidden">Invalid ID or Password!</p>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button id="closeModalBtn" class="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-lg cursor-pointer">Cancel</button>
-                    <button id="submitLoginBtn" class="bg-purple-600 hover:bg-purple-500 text-sm px-4 py-2 rounded-lg font-bold cursor-pointer">Login</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-        
-        <!-- Complete Operational Admin Input Dashboard Layer -->
-        <section id="adminUploadSection" class="hidden glass-card p-6 rounded-2xl border border-purple-500/30 shadow-2xl">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-purple-400 flex items-center gap-2">
-                    <span>⚡ Admin Control Panel</span>
-                </h2>
-                <div class="flex bg-slate-950/40 p-1 border border-slate-700/60 rounded-xl">
-                    <button type="button" onclick="setUploadType('movies')" id="upload-tab-movies" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white transition-all cursor-pointer">Add Movie</button>
-                    <button type="button" onclick="setUploadType('apks')" id="upload-tab-apks" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Add APK</button>
-                    <button type="button" onclick="setUploadType('music')" id="upload-tab-music" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Add Music</button>
-                </div>
-            </div>
-
-            <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div>
-                    <label id="nameLabel" class="block text-sm font-semibold text-slate-300 mb-1">Movie Name</label>
-                    <input type="text" id="assetName" required placeholder="Title Name" class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Genre / Tag</label>
-                    <select id="assetGenre" required class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
-                        <!-- Instantiated dynamically -->
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Google Drive File ID or URL</label>
-                    <input type="text" id="assetDriveId" required placeholder="Paste full link or file ID" class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
-                </div>
-                <button type="submit" id="submitBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-lg w-full cursor-pointer">
-                    Publish Asset
-                </button>
-            </form>
-        </section>
+        <!-- Status Indicator -->
+        <div id="loadingStatus" class="text-center text-purple-400 py-4 font-semibold tracking-wide">Syncing with Google Drive storage layer...</div>
 
         <!-- Dynamic Content Display Dashboard -->
         <section>
-            <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Media components dynamically mount here -->
-            </div>
+            <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             <div id="noAssetsMessage" class="hidden text-center text-slate-500 py-20">
-                <p class="text-xl font-medium">No files found fitting those parameters.</p>
+                <p class="text-xl font-medium">No files found matching current selection parameters.</p>
             </div>
         </section>
     </main>
 
     <script>
-        // DOM targeting configurations
-        const authBtn = document.getElementById('authBtn');
-        const loginModal = document.getElementById('loginModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const submitLoginBtn = document.getElementById('submitLoginBtn');
-        const roleBadge = document.getElementById('roleBadge');
-        const adminUploadSection = document.getElementById('adminUploadSection');
-        const uploadForm = document.getElementById('uploadForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const assetGrid = document.getElementById('assetGrid');
+        // INSERT YOUR KEYS HERE
+        const API_KEY = "PASTE_YOUR_COPIED_API_KEY_HERE"; 
+        const FOLDER_ID = "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo";
+
+        let currentTab = 'movies';
+        let allAssets = { movies: [], apks: [], music: [] };
+
         const searchBar = document.getElementById('searchBar');
         const genreFilter = document.getElementById('genreFilter');
+        const assetGrid = document.getElementById('assetGrid');
         const noAssetsMessage = document.getElementById('noAssetsMessage');
+        const loadingStatus = document.getElementById('loadingStatus');
 
-        const nameLabel = document.getElementById('nameLabel');
-        const assetDriveId = document.getElementById('assetDriveId');
-        const assetGenre = document.getElementById('assetGenre');
+        searchBar.addEventListener('input', renderAssets);
+        genreFilter.addEventListener('change', renderAssets);
 
-        // Core memory states
-        let isAdmin = false;
-        let currentTab = 'movies'; 
-        let currentUploadType = 'movies'; 
+        // Dynamic API Fetch Engine
+        async function fetchDriveFiles() {
+            const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key=${API_KEY}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!data.files) {
+                    loadingStatus.innerText = "Error: Please check folder sharing parameters.";
+                    return;
+                }
 
-        // Local Storage State Storage Initialization
-        let libraries = JSON.parse(localStorage.getItem('cinehub_libraries')) || {
-            movies: [
-                { id: 1, name: "Sample Cinematic Trailer", genre: "Action", driveId: "1dQpL7E095rR9xR1WJz8vS6YnFm3uV9eA" }
-            ],
-            apks: [],
-            music: []
-        };
+                // Sorting Engine mapping tags to categories
+                data.files.forEach(file => {
+                    let cleanName = file.name;
+                    let genre = "General";
 
-        const genreMap = {
-            movies: ['Romantic', 'Psycho', 'Comedy', 'Action', 'Drama'],
-            apks: ['Tools', 'Games'],
-            music: ['Pop', 'Rock', 'Lo-Fi']
-        };
+                    if (file.name.toLowerCase().includes('[movie]')) {
+                        cleanName = file.name.replace(/\[movie\]/i, '').trim();
+                        genre = "Action"; // Fallback default tag
+                        allAssets.movies.push({ id: file.id, name: cleanName, genre: genre });
+                    } else if (file.name.toLowerCase().includes('[apk]')) {
+                        cleanName = file.name.replace(/\[apk\]/i, '').trim();
+                        genre = "Games";
+                        allAssets.apks.push({ id: file.id, name: cleanName, genre: genre });
+                    } else if (file.name.toLowerCase().includes('[music]')) {
+                        cleanName = file.name.replace(/\[music\]/i, '').trim();
+                        genre = "Music Track";
+                        allAssets.music.push({ id: file.id, name: cleanName, genre: genre });
+                    } else {
+                        // Default sorting logic based on MIME Types if tags are missing
+                        if (file.mimeType.includes('video')) {
+                            allAssets.movies.push({ id: file.id, name: cleanName, genre: "Drama" });
+                        } else if (file.name.endsWith('.apk')) {
+                            allAssets.apks.push({ id: file.id, name: cleanName, genre: "Tools" });
+                        } else if (file.mimeType.includes('audio')) {
+                            allAssets.music.push({ id: file.id, name: cleanName, genre: "Music Track" });
+                        }
+                    }
+                });
 
-        document.addEventListener("DOMContentLoaded", () => {
-            setUploadType('movies');
-            applyFilters();
-        });
-
-        searchBar.addEventListener('input', applyFilters);
-        genreFilter.addEventListener('change', applyFilters);
-
-        // Smart Extraction Filter to strip raw Google IDs out of full pasted HTTP links
-        function extractGoogleId(inputString) {
-            const clean = inputString.trim();
-            if (clean.includes("drive.google.com")) {
-                const match = clean.match(/\/d\/([a-zA-Z0-9_-]+)/) || clean.match(/id=([a-zA-Z0-9_-]+)/);
-                return match ? match[1] : clean;
+                loadingStatus.classList.add('hidden');
+                renderAssets();
+            } catch (error) {
+                loadingStatus.innerText = "Connection failed. Verify API access keys.";
+                console.error(error);
             }
-            return clean;
         }
 
-        function applyFilters() {
+        function renderAssets() {
             assetGrid.innerHTML = '';
             const query = searchBar.value.toLowerCase().trim();
             const filterGenre = genreFilter.value;
-            const currentData = libraries[currentTab] || [];
+            const currentData = allAssets[currentTab];
 
             const filtered = currentData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(query);
@@ -226,54 +151,40 @@
 
             filtered.forEach(item => {
                 const card = document.createElement('div');
-                card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40 transition-transform duration-300 hover:scale-[1.01]";
+                card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40";
                 
-                let embedEl = '';
-                // Fixed Native Stream & Embedded Engine Layer
+                let previewFrame = '';
                 if (currentTab === 'movies') {
-                    embedEl = `
-                        <div class="relative w-full aspect-video bg-black group">
-                            <!-- Dual-Layer Player: Tries Native HTML Video first, falls back to direct iframe preview seamless loop -->
-                            <video controls class="w-full h-full object-contain" poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='%23a855f7'><path d='M8 5v14l11-7z'/></svg>">
-                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="video/mp4">
-                                <iframe src="https://drive.google.com/file/d/${item.driveId}/preview" class="absolute inset-0 w-full h-full border-0" allow="autoplay"></iframe>
-                            </video>
-                        </div>
-                    `;
+                    previewFrame = `
+                        <div class="relative w-full aspect-video bg-black">
+                            <iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-full border-0" allow="autoplay" allowfullscreen></iframe>
+                        </div>`;
                 } else if (currentTab === 'music') {
-                    embedEl = `
+                    previewFrame = `
                         <div class="p-4 bg-slate-950/40 border-b border-slate-800">
-                            <audio controls class="w-full rounded-lg">
-                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="audio/mpeg">
-                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="audio/mp3">
-                                <source src="https://drive.google.com/uc?export=download&id=${item.driveId}" type="audio/wav">
-                            </audio>
-                        </div>
-                    `;
+                            <iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-20 border-0 rounded-lg"></iframe>
+                        </div>`;
                 } else {
-                    embedEl = `
-                        <div class="h-36 bg-gradient-to-br from-slate-800 to-slate-950 flex flex-col items-center justify-center border-b border-slate-800/60 text-slate-500">
-                            <span class="text-4xl mb-1 drop-shadow-md">🤖</span>
-                            <span class="text-[11px] uppercase tracking-wider font-extrabold text-purple-400/80">Android Binary Distribution (APK)</span>
-                        </div>
-                    `;
+                    previewFrame = `
+                        <div class="h-36 bg-gradient-to-br from-slate-800 to-slate-950 flex flex-col items-center justify-center border-b border-slate-800 text-slate-500">
+                            <span class="text-4xl mb-1">🤖</span>
+                            <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Android Package</span>
+                        </div>`;
                 }
 
                 card.innerHTML = `
-                    ${embedEl}
+                    ${previewFrame}
                     <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div>
                             <span class="inline-block bg-purple-500/10 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-md mb-2 border border-purple-500/20">${item.genre}</span>
-                            <h4 class="text-lg font-bold text-white tracking-wide truncate" title="${item.name}">${item.name}</h4>
+                            <h4 class="text-lg font-bold text-white tracking-wide">${item.name}</h4>
                         </div>
                         <div class="flex items-center gap-2 pt-2">
-                            <a href="https://drive.google.com/uc?export=download&id=${item.driveId}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
+                            <a href="https://drive.google.com/uc?export=download&id=${item.id}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
                                 📥 Download File
                             </a>
-                            ${isAdmin ? `<button onclick="deleteAsset('${currentTab}', ${item.id})" class="bg-rose-950/40 hover:bg-rose-900 border border-rose-800/60 text-rose-400 p-2.5 rounded-xl transition-all cursor-pointer" title="Delete Content Item">🗑️</button>` : ''}
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 assetGrid.appendChild(card);
             });
         }
@@ -286,109 +197,11 @@
                     ? "px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition-all cursor-pointer"
                     : "px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer";
             });
-            applyFilters();
+            renderAssets();
         };
 
-        window.setUploadType = function(type) {
-            currentUploadType = type;
-            ['movies', 'apks', 'music'].forEach(t => {
-                const btn = document.getElementById(`upload-tab-${t}`);
-                btn.className = (t === type)
-                    ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white transition-all cursor-pointer"
-                    : "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer";
-            });
-
-            nameLabel.innerText = type === 'movies' ? "Movie Name" : type === 'apks' ? "Application Name" : "Track Name / Title";
-            submitBtn.innerText = type === 'movies' ? "Publish Movie" : type === 'apks' ? "Publish App Package" : "Publish Track";
-
-            assetGenre.innerHTML = '';
-            genreMap[type].forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g; opt.innerText = g;
-                assetGenre.appendChild(opt);
-            });
-        };
-
-        // Admin Security Authentication Control Panels
-        authBtn.addEventListener('click', () => {
-            if (isAdmin) {
-                isAdmin = false;
-                authBtn.innerText = "Admin Login";
-                authBtn.className = "bg-purple-600 hover:bg-purple-500 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md";
-                roleBadge.innerText = "Guest Mode";
-                roleBadge.className = "bg-slate-800 text-[10px] text-slate-400 font-medium px-2 py-0.5 rounded border border-slate-700 whitespace-nowrap";
-                adminUploadSection.classList.add('hidden');
-                applyFilters(); 
-            } else {
-                loginModal.classList.remove('hidden');
-            }
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            loginModal.classList.add('hidden');
-            document.getElementById('loginError').classList.add('hidden');
-        });
-
-        submitLoginBtn.addEventListener('click', () => {
-            const idInput = document.getElementById('adminId').value;
-            const passInput = document.getElementById('adminPassword').value;
-
-            if (idInput === "slot69" && passInput === "25801@Yeasin") {
-                isAdmin = true;
-                loginModal.classList.add('hidden');
-                document.getElementById('adminId').value = '';
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('loginError').classList.add('hidden');
-                
-                authBtn.innerText = "Log Out";
-                authBtn.className = "bg-rose-600 hover:bg-rose-500 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md";
-                roleBadge.innerText = "Admin Access";
-                roleBadge.className = "bg-amber-500/20 text-[10px] text-amber-400 font-bold px-2 py-0.5 rounded border border-amber-500/30 whitespace-nowrap";
-                adminUploadSection.classList.remove('hidden');
-                applyFilters();
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-            }
-        });
-
-        // Content Management: Add Item Action
-        uploadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!isAdmin) return;
-
-            const nameInput = document.getElementById('assetName');
-            const driveIdInput = document.getElementById('assetDriveId');
-            
-            const targetedId = extractGoogleId(driveIdInput.value);
-
-            if (!targetedId) {
-                alert("Please drop a valid Google Drive link or raw item ID string.");
-                return;
-            }
-
-            const newAsset = {
-                id: Date.now(),
-                name: nameInput.value.trim(),
-                genre: assetGenre.value,
-                driveId: targetedId
-            };
-
-            libraries[currentUploadType].push(newAsset);
-            localStorage.setItem('cinehub_libraries', JSON.stringify(libraries));
-
-            nameInput.value = '';
-            driveIdInput.value = '';
-            
-            // Re-render components instantly
-            applyFilters();
-        });
-
-        // Content Management: Delete Item Action
-        window.deleteAsset = function(tab, id) {
-            libraries[tab] = libraries[tab].filter(item => item.id !== id);
-            localStorage.setItem('cinehub_libraries', JSON.stringify(libraries));
-            applyFilters();
-        };
+        // Initialize Call Engine
+        fetchDriveFiles();
     </script>
 </body>
 </html>
