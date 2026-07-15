@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineHub - Premium Media Library</title>
+    <title>MovieSlots🎬- Premium Media Library</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @keyframes rgbGradient {
@@ -25,11 +25,14 @@
 </head>
 <body class="animated-rgb-bg text-gray-100 min-h-screen font-sans antialiased">
 
+    <!-- Top Navbar Bar -->
     <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50 p-4 shadow-2xl">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
             <div class="flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto flex-1">
                 <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-wider whitespace-nowrap drop-shadow-sm">🎬 CineHub</h1>
-                <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
+                
+                <!-- Guest View Filters -->
+                <div id="guestControls" class="flex flex-col sm:flex-row items-center gap-4 w-full">
                     <input type="text" id="searchBar" placeholder="Search assets..." class="w-full md:max-w-md bg-slate-800/90 text-white placeholder-slate-400 rounded-xl px-5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 shadow-inner">
                     <select id="genreFilter" class="w-full sm:w-56 bg-slate-800/90 text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 cursor-pointer shadow-inner">
                         <option value="all">All Genres / Tags</option>
@@ -43,104 +46,98 @@
                 </div>
             </div>
             
-            <div class="flex gap-2 p-1 bg-slate-950/60 border border-slate-700/50 rounded-xl">
-                <button id="tab-movies" onclick="switchLibraryTab('movies')" class="px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition-all cursor-pointer">Movies</button>
-                <button id="tab-apks" onclick="switchLibraryTab('apks')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">APKs</button>
-                <button id="tab-music" onclick="switchLibraryTab('music')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Music</button>
+            <!-- Tab & Access Switchers -->
+            <div class="flex items-center gap-4">
+                <div class="flex gap-2 p-1 bg-slate-950/60 border border-slate-700/50 rounded-xl">
+                    <button id="tab-movies" onclick="switchLibraryTab('movies')" class="px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition-all cursor-pointer">Movies</button>
+                    <button id="tab-apks" onclick="switchLibraryTab('apks')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">APKs</button>
+                    <button id="tab-music" onclick="switchLibraryTab('music')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Music</button>
+                </div>
+                <button id="adminAuthBtn" onclick="toggleAdminView()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 text-sm rounded-xl border border-slate-600/50 transition-all cursor-pointer">Panel Mode</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-        <div id="loadingStatus" class="text-center text-purple-400 py-4 font-semibold tracking-wide">Syncing Media Assets...</div>
+        
+        <!-- ADMIN PANEL SECTION (Hidden by default) -->
+        <section id="adminPanel" class="hidden glass-card rounded-2xl p-6 border border-purple-500/30 space-y-6">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                <h2 class="text-2xl font-black text-purple-400 tracking-wide">⚙️ Admin Control Panel</h2>
+                <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer">Exit Session</button>
+            </div>
+            
+            <!-- Asset Upload / Form Matrix -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-950/40 p-4 rounded-xl border border-slate-800 shadow-inner">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Asset Title</label>
+                    <input type="text" id="newTitle" placeholder="e.g. Inception" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Google Drive File ID</label>
+                    <input type="text" id="newDriveId" placeholder="1Zpk7kFnxQ9IU..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Genre Classification</label>
+                    <select id="newGenre" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500 cursor-pointer">
+                        <option value="Action">Action</option>
+                        <option value="Drama">Drama</option>
+                        <option value="Comedy">Comedy</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Games">Games</option>
+                        <option value="Music Track">Music Track</option>
+                    </select>
+                </div>
+                <button onclick="addNewAsset()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all cursor-pointer">➕ Register Asset</button>
+            </div>
+        </section>
 
-        <section>
+        <!-- DYNAMIC GUEST STOREFRONT DISPLAY -->
+        <section id="guestGallery">
             <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             <div id="noAssetsMessage" class="hidden text-center text-slate-500 py-20">
-                <p class="text-xl font-medium">No files found matching current selection parameters.</p>
+                <p class="text-xl font-medium">No files registered or found matching current criteria.</p>
             </div>
         </section>
     </main>
 
     <script>
-        const FOLDER_ID = "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo"; 
+        // System Access Matrix Keys
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "admin"; 
+        let isAdminLoggedIn = false;
 
         let currentTab = 'movies';
-        let allAssets = { movies: [], apks: [], music: [] };
+        
+        // Dynamic Local Storage Data Cache Loop (Allows client persistence without backend failures)
+        let allAssets = JSON.parse(localStorage.getItem('cinehub_storage')) || {
+            movies: [
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Sample Premium Movie Title", genre: "Action" }
+            ],
+            apks: [
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Sample Premium App Tool", genre: "Tools" }
+            ],
+            music: [
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Sample High Quality Audio Track", genre: "Music Track" }
+            ]
+        };
 
         const searchBar = document.getElementById('searchBar');
         const genreFilter = document.getElementById('genreFilter');
         const assetGrid = document.getElementById('assetGrid');
         const noAssetsMessage = document.getElementById('noAssetsMessage');
-        const loadingStatus = document.getElementById('loadingStatus');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminAuthBtn = document.getElementById('adminAuthBtn');
 
         searchBar.addEventListener('input', renderAssets);
         genreFilter.addEventListener('change', renderAssets);
 
-        async function fetchDriveFiles() {
-            // Using a CORS proxy to pull the Google Drive public rss/atom structure cleanly
-            const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://docs.google.com/feeds/download/folders/v1/' + FOLDER_ID)}`;
-            
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                // Parse out XML content from Google's folder feed response
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-                const entries = xmlDoc.getElementsByTagName("entry");
-
-                if (entries.length === 0) {
-                    loadingStatus.innerText = "Error: Confirm folder sharing parameters match 'Anyone with Link'.";
-                    return;
-                }
-
-                allAssets = { movies: [], apks: [], music: [] };
-
-                for (let entry of entries) {
-                    const title = entry.getElementsByTagName("title")[0].textContent;
-                    // Extract ID from entry URI link string
-                    const entryId = entry.getElementsByTagName("id")[0].textContent.split('/').pop();
-                    
-                    let cleanName = title;
-                    let genre = "General";
-
-                    if (title.toLowerCase().includes('[movie]')) {
-                        cleanName = title.replace(/\[movie\]/i, '').trim();
-                        genre = "Action"; 
-                        allAssets.movies.push({ id: entryId, name: cleanName, genre: genre });
-                    } else if (title.toLowerCase().includes('[apk]')) {
-                        cleanName = title.replace(/\[apk\]/i, '').trim();
-                        genre = "Games";
-                        allAssets.apks.push({ id: entryId, name: cleanName, genre: genre });
-                    } else if (title.toLowerCase().includes('[music]')) {
-                        cleanName = title.replace(/\[music\]/i, '').trim();
-                        genre = "Music Track";
-                        allAssets.music.push({ id: entryId, name: cleanName, genre: genre });
-                    } else {
-                        if (title.endsWith('.mp4') || title.endsWith('.mkv')) {
-                            allAssets.movies.push({ id: entryId, name: cleanName, genre: "Drama" });
-                        } else if (title.endsWith('.apk')) {
-                            allAssets.apks.push({ id: entryId, name: cleanName, genre: "Tools" });
-                        } else if (title.endsWith('.mp3') || title.endsWith('.wav')) {
-                            allAssets.music.push({ id: entryId, name: cleanName, genre: "Music Track" });
-                        }
-                    }
-                }
-
-                loadingStatus.classList.add('hidden');
-                renderAssets();
-            } catch (error) {
-                loadingStatus.innerText = "Connection integration failed. Refresh in Incognito tab.";
-                console.error(error);
-            }
-        }
-
+        // Core UI Engine Renderer
         function renderAssets() {
             assetGrid.innerHTML = '';
             const query = searchBar.value.toLowerCase().trim();
             const filterGenre = genreFilter.value;
-            const currentData = allAssets[currentTab];
+            const currentData = allAssets[currentTab] || [];
 
             const filtered = currentData.filter(item => {
                 const matchesSearch = item.name.toLowerCase().includes(query);
@@ -154,9 +151,9 @@
             }
             noAssetsMessage.classList.add('hidden');
 
-            filtered.forEach(item => {
+            filtered.forEach((item, index) => {
                 const card = document.createElement('div');
-                card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40";
+                card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40 relative";
                 
                 let previewFrame = '';
                 if (currentTab === 'movies') {
@@ -177,7 +174,18 @@
                         </div>`;
                 }
 
+                // Delete Button Layer inside Admin Module Interface
+                let adminDeleteBtn = '';
+                if (isAdminLoggedIn) {
+                    adminDeleteBtn = `
+                        <button onclick="deleteAsset('${index}')" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white font-bold p-2 text-xs rounded-lg shadow-md z-40 transition-all cursor-pointer">
+                            🗑️ Delete
+                        </button>
+                    `;
+                }
+
                 card.innerHTML = `
+                    ${adminDeleteBtn}
                     ${previewFrame}
                     <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div>
@@ -194,6 +202,70 @@
             });
         }
 
+        // Authentication Controller Core
+        window.toggleAdminView = function() {
+            if (!isAdminLoggedIn) {
+                const usernameInput = prompt("Enter Admin ID Account Name:");
+                const passwordInput = prompt("Enter Administration Matrix Password:");
+                
+                if (usernameInput === ADMIN_USER && passwordInput === ADMIN_PASS) {
+                    isAdminLoggedIn = true;
+                    adminPanel.classList.remove('hidden');
+                    adminAuthBtn.innerText = "Guest Mode View";
+                    adminAuthBtn.className = "bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 text-sm rounded-xl border border-purple-400/50 transition-all cursor-pointer";
+                    renderAssets();
+                } else {
+                    alert("Authentication Error: Invalid login credentials matching database registry key.");
+                }
+            } else {
+                logoutAdmin();
+            }
+        };
+
+        window.logoutAdmin = function() {
+            isAdminLoggedIn = false;
+            adminPanel.classList.add('hidden');
+            adminAuthBtn.innerText = "Panel Mode";
+            adminAuthBtn.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 text-sm rounded-xl border border-slate-600/50 transition-all cursor-pointer";
+            renderAssets();
+        };
+
+        // Admin Management Processing Methods
+        window.addNewAsset = function() {
+            const title = document.getElementById('newTitle').value.trim();
+            const driveId = document.getElementById('newDriveId').value.trim();
+            const genre = document.getElementById('newGenre').value;
+
+            if (!title || !driveId) {
+                alert("Please fully register both Title structure and Drive identifier parameter values.");
+                return;
+            }
+
+            // Map data classification structure
+            let targetCategory = 'movies';
+            if (genre === 'Tools' || genre === 'Games') targetCategory = 'apks';
+            if (genre === 'Music Track') targetCategory = 'music';
+
+            allAssets[targetCategory].push({ id: driveId, name: title, genre: genre });
+            saveAndRefresh();
+
+            // Reset inputs fields
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newDriveId').value = '';
+        };
+
+        window.deleteAsset = function(index) {
+            if (confirm("Execute process command loop to delete item matrix from system storage data structures?")) {
+                allAssets[currentTab].splice(index, 1);
+                saveAndRefresh();
+            }
+        };
+
+        function saveAndRefresh() {
+            localStorage.setItem('cinehub_storage', JSON.stringify(allAssets));
+            renderAssets();
+        }
+
         window.switchLibraryTab = function(tabName) {
             currentTab = tabName;
             ['movies', 'apks', 'music'].forEach(t => {
@@ -205,7 +277,8 @@
             renderAssets();
         };
 
-        fetchDriveFiles();
+        // Boot Up Engine Immediately
+        renderAssets();
     </script>
 </body>
 </html>
