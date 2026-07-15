@@ -24,7 +24,7 @@
     </style>
 </head>
 <body class="animated-rgb-bg text-gray-100 min-h-screen font-sans antialiased">
-    <!-- Abyss.to Player Domain Auto-Replacement Engine -->
+    <!-- Player Domain Auto-Replacement Engine -->
     <script src="https://ismcdn.net/players/replace-domain.js"></script>
 
     <!-- Top Navigation Navbar -->
@@ -62,22 +62,22 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         
-        <!-- ADMIN PANEL SECTION (Hidden by default) -->
+        <!-- ADMIN PANEL SECTION -->
         <section id="adminPanel" class="hidden glass-card rounded-2xl p-6 border border-purple-500/30 space-y-6">
             <div class="flex justify-between items-center border-b border-slate-700 pb-4">
                 <h2 class="text-2xl font-black text-purple-400 tracking-wide">⚙️ Admin Control Panel</h2>
                 <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer">Exit Session</button>
             </div>
             
-            <!-- Asset Submission Form -->
+            <!-- Replaced inputs to support complete Video Links -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-950/40 p-4 rounded-xl border border-slate-800 shadow-inner">
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Asset Title</label>
                     <input type="text" id="newTitle" placeholder="e.g. Inception" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Abyss Video Slug / File ID</label>
-                    <input type="text" id="newDriveId" placeholder="e.g. 4jK0LybP" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Video Link / URL</label>
+                    <input type="text" id="newVideoUrl" placeholder="e.g. https://site.com/video.mp4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Genre Classification</label>
@@ -94,7 +94,7 @@
             </div>
         </section>
 
-        <!-- DYNAMIC STOREFRONT DISPLAY (GUEST GALLERY) -->
+        <!-- DYNAMIC GUEST STOREFRONT DISPLAY -->
         <section id="guestGallery">
             <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             <div id="noAssetsMessage" class="hidden text-center text-slate-500 py-20">
@@ -104,27 +104,24 @@
     </main>
 
     <script>
-        // Updated System Access Matrix Keys
         const ADMIN_USER = "slot69";
         const ADMIN_PASS = "25801@Yeasin"; 
         let isAdminLoggedIn = false;
         let currentTab = 'movies';
         
-        // Initial Demo Database Array
+        // Initial Demo Database Array using direct layout sources
         let initialAssets = {
             movies: [
-                { id: "4jK0LybP", name: "Deadpool & Wolverine (2024) [H.264]", genre: "Action" },
-                { id: "4jK0LybP", name: "Oppenheimer Cinematic Cut", genre: "Drama" }
+                { url: "https://abyssplayer.com/e/4jK0LybP", name: "Deadpool & Wolverine (2024)", genre: "Action" }
             ],
             apks: [
-                { id: "4jK0LybP", name: "ExpressVPN Premium Modded Package", genre: "Tools" }
+                { url: "https://example.com/app.apk", name: "ExpressVPN Premium Modded", genre: "Tools" }
             ],
             music: [
-                { id: "4jK0LybP", name: "Interstellar Soundtrack Remastered", genre: "Music Track" }
+                { url: "https://example.com/track.mp3", name: "Interstellar Soundtrack Remastered", genre: "Music Track" }
             ]
         };
 
-        // Load dataset from local caching structure
         let allAssets = JSON.parse(localStorage.getItem('cinehub_storage')) || initialAssets;
         if (!localStorage.getItem('cinehub_storage')) {
             localStorage.setItem('cinehub_storage', JSON.stringify(allAssets));
@@ -140,7 +137,6 @@
         searchBar.addEventListener('input', renderAssets);
         genreFilter.addEventListener('change', renderAssets);
 
-        // Core UI Layout Render Engine
         function renderAssets() {
             assetGrid.innerHTML = '';
             const query = searchBar.value.toLowerCase().trim();
@@ -163,18 +159,32 @@
                 const card = document.createElement('div');
                 card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40 relative";
                 
-                // Embedded streaming configurations via Abyss Stream Network Player
                 let previewFrame = '';
                 if (currentTab === 'movies') {
-                    previewFrame = `
-                        <div class="relative w-full aspect-video bg-black">
-                            <iframe src="https://abyssplayer.com/e/${item.id}" class="w-full h-full border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                        </div>`;
+                    // Detect if it is a raw mp4/mkv video or an embed link
+                    if (item.url.endsWith('.mp4') || item.url.endsWith('.mkv') || item.url.endsWith('.webm')) {
+                        previewFrame = `
+                            <div class="relative w-full aspect-video bg-black">
+                                <video src="${item.url}" controls class="w-full h-full object-cover" preload="metadata"></video>
+                            </div>`;
+                    } else {
+                        previewFrame = `
+                            <div class="relative w-full aspect-video bg-black">
+                                <iframe src="${item.url}" class="w-full h-full border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                            </div>`;
+                    }
                 } else if (currentTab === 'music') {
-                    previewFrame = `
-                        <div class="p-4 bg-slate-950/40 border-b border-slate-800">
-                            <iframe src="https://abyssplayer.com/e/${item.id}" class="w-full h-20 border-0 rounded-lg"></iframe>
-                        </div>`;
+                    if (item.url.endsWith('.mp3') || item.url.endsWith('.wav') || item.url.endsWith('.ogg')) {
+                        previewFrame = `
+                            <div class="p-4 bg-slate-950/40 border-b border-slate-800 flex items-center justify-center">
+                                <audio src="${item.url}" controls class="w-full"></audio>
+                            </div>`;
+                    } else {
+                        previewFrame = `
+                            <div class="p-4 bg-slate-950/40 border-b border-slate-800">
+                                <iframe src="${item.url}" class="w-full h-20 border-0 rounded-lg"></iframe>
+                            </div>`;
+                    }
                 } else {
                     previewFrame = `
                         <div class="h-36 bg-gradient-to-br from-slate-800 to-slate-950 flex flex-col items-center justify-center border-b border-slate-800 text-slate-500">
@@ -183,12 +193,11 @@
                         </div>`;
                 }
 
-                // Delete Layer available to authenticated accounts
                 let adminDeleteBtn = '';
                 if (isAdminLoggedIn) {
                     adminDeleteBtn = `
                         <button onclick="deleteAsset('${index}')" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white font-bold px-2.5 py-1 text-xs rounded-lg shadow-md z-40 transition-all cursor-pointer">
-                            🗑️ Delete
+                            🗑 nighttime delete
                         </button>`;
                 }
 
@@ -201,8 +210,8 @@
                             <h4 class="text-base font-bold text-white tracking-wide truncate">${item.name}</h4>
                         </div>
                         <div class="flex items-center gap-2 pt-1">
-                            <a href="https://abyssplayer.com/e/${item.id}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
-                                🎬 Stream/Download
+                            <a href="${item.url}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
+                                🔗 Open Link / Download
                             </a>
                         </div>
                     </div>`;
@@ -210,7 +219,6 @@
             });
         }
 
-        // Access Authentication Loops
         window.toggleAdminView = function() {
             if (!isAdminLoggedIn) {
                 const usernameInput = prompt("Enter Admin ID Account Name:");
@@ -238,13 +246,12 @@
             renderAssets();
         };
 
-        // Data Insertion Methods
         window.addNewAsset = function() {
             const title = document.getElementById('newTitle').value.trim();
-            const driveId = document.getElementById('newDriveId').value.trim();
+            const videoUrl = document.getElementById('newVideoUrl').value.trim();
             const genre = document.getElementById('newGenre').value;
 
-            if (!title || !driveId) {
+            if (!title || !videoUrl) {
                 alert("Please complete fields before submitting.");
                 return;
             }
@@ -253,11 +260,11 @@
             if (genre === 'Tools' || genre === 'Games') targetCategory = 'apks';
             if (genre === 'Music Track') targetCategory = 'music';
 
-            allAssets[targetCategory].push({ id: driveId, name: title, genre: genre });
+            allAssets[targetCategory].push({ url: videoUrl, name: title, genre: genre });
             saveAndRefresh();
 
             document.getElementById('newTitle').value = '';
-            document.getElementById('newDriveId').value = '';
+            document.getElementById('newVideoUrl').value = '';
         };
 
         window.deleteAsset = function(index) {
