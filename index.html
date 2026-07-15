@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieSlots🎬- Premium Media Library</title>
+    <title>CineHub - Premium Media Library</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @keyframes rgbGradient {
@@ -60,18 +60,18 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         
-        <!-- ADMIN PANEL SECTION (Hidden by default) -->
+        <!-- ADMIN PANEL SECTION -->
         <section id="adminPanel" class="hidden glass-card rounded-2xl p-6 border border-purple-500/30 space-y-6">
             <div class="flex justify-between items-center border-b border-slate-700 pb-4">
                 <h2 class="text-2xl font-black text-purple-400 tracking-wide">⚙️ Admin Control Panel</h2>
                 <button onclick="logoutAdmin()" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer">Exit Session</button>
             </div>
             
-            <!-- Asset Upload / Form Matrix -->
+            <!-- Asset Form Matrix -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-950/40 p-4 rounded-xl border border-slate-800 shadow-inner">
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Asset Title</label>
-                    <input type="text" id="newTitle" placeholder="e.g. Inception" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                    <input type="text" id="newTitle" placeholder="e.g. Avatar 2" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Google Drive File ID</label>
@@ -102,25 +102,33 @@
     </main>
 
     <script>
-        // System Access Matrix Keys
         const ADMIN_USER = "admin";
         const ADMIN_PASS = "admin"; 
         let isAdminLoggedIn = false;
-
         let currentTab = 'movies';
         
-        // Dynamic Local Storage Data Cache Loop (Allows client persistence without backend failures)
-        let allAssets = JSON.parse(localStorage.getItem('cinehub_storage')) || {
+        // Initial Database Array - With Separate Distinct Names For Everything
+        let initialAssets = {
             movies: [
-                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Sample Premium Movie Title", genre: "Action" }
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Deadpool & Wolverine (2024)", genre: "Action" },
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Oppenheimer (IMAX Edition)", genre: "Drama" },
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "The Batman", genre: "Action" }
             ],
             apks: [
-                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Sample Premium App Tool", genre: "Tools" }
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "ExpressVPN Premium Mod", genre: "Tools" },
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Minecraft Pocket Edition v1.21", genre: "Games" }
             ],
             music: [
-                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Sample High Quality Audio Track", genre: "Music Track" }
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Interstellar Theme OST", genre: "Music Track" },
+                { id: "1Zpk7kFnxQ9IUxzEQ46uQpJOzvINid5vo", name: "Blinding Lights - The Weeknd", genre: "Music Track" }
             ]
         };
+
+        // Load data from LocalStorage or initialize with custom list
+        let allAssets = JSON.parse(localStorage.getItem('cinehub_storage')) || initialAssets;
+        if (!localStorage.getItem('cinehub_storage')) {
+            localStorage.setItem('cinehub_storage', JSON.stringify(allAssets));
+        }
 
         const searchBar = document.getElementById('searchBar');
         const genreFilter = document.getElementById('genreFilter');
@@ -132,7 +140,6 @@
         searchBar.addEventListener('input', renderAssets);
         genreFilter.addEventListener('change', renderAssets);
 
-        // Core UI Engine Renderer
         function renderAssets() {
             assetGrid.innerHTML = '';
             const query = searchBar.value.toLowerCase().trim();
@@ -155,16 +162,17 @@
                 const card = document.createElement('div');
                 card.className = "glass-card rounded-2xl overflow-hidden shadow-xl flex flex-col border border-slate-700/40 relative";
                 
+                // Embedded streaming configurations for instantaneous viewing
                 let previewFrame = '';
                 if (currentTab === 'movies') {
                     previewFrame = `
                         <div class="relative w-full aspect-video bg-black">
-                            <iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-full border-0" allow="autoplay" allowfullscreen></iframe>
+                            <iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-full border-0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
                         </div>`;
                 } else if (currentTab === 'music') {
                     previewFrame = `
                         <div class="p-4 bg-slate-950/40 border-b border-slate-800">
-                            <iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-20 border-0 rounded-lg"></iframe>
+                            <iframe src="https://drive.google.com/file/d/${item.id}/preview" class="w-full h-20 border-0 rounded-lg" allow="autoplay"></iframe>
                         </div>`;
                 } else {
                     previewFrame = `
@@ -174,14 +182,12 @@
                         </div>`;
                 }
 
-                // Delete Button Layer inside Admin Module Interface
                 let adminDeleteBtn = '';
                 if (isAdminLoggedIn) {
                     adminDeleteBtn = `
-                        <button onclick="deleteAsset('${index}')" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white font-bold p-2 text-xs rounded-lg shadow-md z-40 transition-all cursor-pointer">
+                        <button onclick="deleteAsset('${index}')" class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white font-bold px-2.5 py-1 text-xs rounded-lg shadow-md z-40 transition-all cursor-pointer">
                             🗑️ Delete
-                        </button>
-                    `;
+                        </button>`;
                 }
 
                 card.innerHTML = `
@@ -190,11 +196,11 @@
                     <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                         <div>
                             <span class="inline-block bg-purple-500/10 text-purple-400 text-xs font-bold px-2.5 py-1 rounded-md mb-2 border border-purple-500/20">${item.genre}</span>
-                            <h4 class="text-lg font-bold text-white tracking-wide">${item.name}</h4>
+                            <h4 class="text-base font-bold text-white tracking-wide truncate">${item.name}</h4>
                         </div>
-                        <div class="flex items-center gap-2 pt-2">
+                        <div class="flex items-center gap-2 pt-1">
                             <a href="https://drive.google.com/uc?export=download&id=${item.id}" target="_blank" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-center text-sm font-bold py-2.5 px-4 rounded-xl shadow transition-all cursor-pointer">
-                                📥 Download File
+                                📥 Download
                             </a>
                         </div>
                     </div>`;
@@ -202,11 +208,10 @@
             });
         }
 
-        // Authentication Controller Core
         window.toggleAdminView = function() {
             if (!isAdminLoggedIn) {
                 const usernameInput = prompt("Enter Admin ID Account Name:");
-                const passwordInput = prompt("Enter Administration Matrix Password:");
+                const passwordInput = prompt("Enter Administration Password:");
                 
                 if (usernameInput === ADMIN_USER && passwordInput === ADMIN_PASS) {
                     isAdminLoggedIn = true;
@@ -215,7 +220,7 @@
                     adminAuthBtn.className = "bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 text-sm rounded-xl border border-purple-400/50 transition-all cursor-pointer";
                     renderAssets();
                 } else {
-                    alert("Authentication Error: Invalid login credentials matching database registry key.");
+                    alert("Invalid admin login credentials.");
                 }
             } else {
                 logoutAdmin();
@@ -230,18 +235,16 @@
             renderAssets();
         };
 
-        // Admin Management Processing Methods
         window.addNewAsset = function() {
             const title = document.getElementById('newTitle').value.trim();
             const driveId = document.getElementById('newDriveId').value.trim();
             const genre = document.getElementById('newGenre').value;
 
             if (!title || !driveId) {
-                alert("Please fully register both Title structure and Drive identifier parameter values.");
+                alert("Please complete fields before submitting.");
                 return;
             }
 
-            // Map data classification structure
             let targetCategory = 'movies';
             if (genre === 'Tools' || genre === 'Games') targetCategory = 'apks';
             if (genre === 'Music Track') targetCategory = 'music';
@@ -249,13 +252,12 @@
             allAssets[targetCategory].push({ id: driveId, name: title, genre: genre });
             saveAndRefresh();
 
-            // Reset inputs fields
             document.getElementById('newTitle').value = '';
             document.getElementById('newDriveId').value = '';
         };
 
         window.deleteAsset = function(index) {
-            if (confirm("Execute process command loop to delete item matrix from system storage data structures?")) {
+            if (confirm("Permanently delete this element from runtime system arrays?")) {
                 allAssets[currentTab].splice(index, 1);
                 saveAndRefresh();
             }
@@ -277,7 +279,6 @@
             renderAssets();
         };
 
-        // Boot Up Engine Immediately
         renderAssets();
     </script>
 </body>
