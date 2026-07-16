@@ -6,6 +6,8 @@
     <title>MovieSlot - Premium Media Library</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- JSZip library for creating zip files completely in-browser -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         /* Smooth High-End RGB Neon Background Animation */
         @keyframes rgbGradient {
@@ -61,13 +63,14 @@
                 </div>
             </div>
             
-            <!-- Library Module Switcher & One-Click Download All -->
+            <!-- Library Module Switcher & One-Click ZIP Download All -->
             <div class="flex flex-wrap items-center gap-4">
                 <button 
-                    onclick="downloadAll()" 
+                    id="downloadZipBtn"
+                    onclick="downloadAllAsZip()" 
                     class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                    📥 Download All
+                    📦 Download All (ZIP)
                 </button>
 
                 <div class="flex gap-2 p-1 bg-slate-950/60 border border-slate-700/50 rounded-xl">
@@ -554,42 +557,81 @@
             setTimeout(() => URL.revokeObjectURL(a.href), 10000);
         };
 
-        // --- NEW ONE-CLICK OFFLINE "DOWNLOAD ALL" CONTROLLER ---
-        window.downloadAll = function() {
+        // --- NEW ONE-CLICK OFFLINE "ZIP COMPRESSION & DOWNLOAD ALL" ENGINE ---
+        window.downloadAllAsZip = async function() {
             let activeList = [];
             let extension = 'mp4';
+            let folderName = 'My_Movies';
 
             if (currentTab === 'movies') {
                 activeList = videoLibrary;
                 extension = 'mp4';
+                folderName = 'My_Movies';
             } else if (currentTab === 'apks') {
                 activeList = apkLibrary;
                 extension = 'apk';
+                folderName = 'My_APKs';
             } else if (currentTab === 'music') {
                 activeList = musicLibrary;
                 extension = 'mp3';
+                folderName = 'My_Music';
             }
 
             if (!activeList || activeList.length === 0) {
-                alert("No files found to download in this category!");
+                alert("No files found to pack in this category!");
                 return;
             }
 
-            const confirmProcess = confirm(`Do you want to download all ${activeList.length} files from the active tab at once?`);
-            if (!confirmProcess) return;
+            // Ensure JSZip has loaded successfully
+            if (typeof JSZip === "undefined") {
+                alert("The ZIP packaging engine is still loading. Please connect to the internet once to load the script.");
+                return;
+            }
 
-            activeList.forEach((asset, index) => {
-                setTimeout(() => {
-                    if (!asset.fileBlob) return;
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(asset.fileBlob);
-                    a.download = `${asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-                }, index * 800); // Prevents browser choke by downloading in 800ms increments
-            });
+            const zipBtn = document.getElementById('downloadZipBtn');
+            const originalText = zipBtn.innerHTML;
+
+            // Update UI State to reflect packaging process
+            zipBtn.disabled = true;
+            zipBtn.innerHTML = `🌀 Packing... 0%`;
+
+            try {
+                const zip = new JSZip();
+                const targetFolder = zip.folder(folderName);
+
+                // Add each blob object sequentially to the ZIP directory
+                activeList.forEach(asset => {
+                    if (asset.fileBlob) {
+                        const safeName = asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                        targetFolder.file(`${safeName}.${extension}`, asset.fileBlob);
+                    }
+                });
+
+                // Generate the compressed file asynchronously
+                const content = await zip.generateAsync({ type: "blob" }, (metadata) => {
+                    zipBtn.innerHTML = `🌀 Packing... ${Math.round(metadata.percent)}%`;
+                });
+
+                // Create a temporary object URL and trigger download
+                const blobUrl = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = `${folderName.toLowerCase()}_archive_${Date.now()}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Cleanup browser resources
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+
+            } catch (error) {
+                console.error("Zip packaging failed:", error);
+                alert("Failed to package files inside ZIP: " + error.message);
+            } finally {
+                // Reset UI State
+                zipBtn.disabled = false;
+                zipBtn.innerHTML = originalText;
+            }
         };
 
         // Real-time Event Handling Listeners
