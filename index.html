@@ -3,49 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Video Compressor</title>
+    <title>Local Massive Video Compressor</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #fff; max-width: 600px; margin: 50px auto; padding: 20px; }
-        .card { background: #1e1e1e; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, select, button { width: 100%; padding: 12px; border-radius: 4px; border: none; box-sizing: border-box; }
-        input[type="file"], select { background: #333; color: white; }
-        input[type="number"] { background: #333; color: white; }
-        button { background: #00adb5; color: white; font-size: 16px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #008c9e; }
-        #status { margin-top: 20px; text-align: center; color: #00adb5; font-weight: bold; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f0f12; color: #e4e4e7; max-width: 650px; margin: 40px auto; padding: 20px; }
+        .card { background: #18181b; padding: 35px; border-radius: 12px; border: 1px solid #27272a; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { margin-top: 0; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin-bottom: 22px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #a1a1aa; }
+        input, select, button { width: 100%; padding: 14px; border-radius: 6px; border: 1px solid #3f3f46; box-sizing: border-box; font-size: 15px; }
+        input[type="file"], select, input[type="number"] { background: #27272a; color: white; }
+        input:focus, select:focus { border-color: #3b82f6; outline: none; }
+        button { background: #2563eb; color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background: #1d4ed8; }
+        .badge { background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; float: right; }
+        #status { margin-top: 25px; padding: 15px; border-radius: 6px; background: #27272a; display: none; border-left: 4px solid #3b82f6; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>🎬 Custom Video Compressor</h2>
-    <hr style="border-color:#333; margin-bottom:20px;">
+    <h2>⚡ Offline Local Video Compressor <span class="badge">100% Free</span></h2>
+    <p style="color: #71717a; font-size: 14px; margin-top:-5px; margin-bottom:25px;">Processes locally using your hardware streams. No cloud, no internet limits.</p>
     
     <form id="uploadForm">
         <div class="form-group">
-            <label>Select Movie File (Up to 10GB+):</label>
+            <label>Select Movie (Supports 10GB - 50GB+):</label>
             <input type="file" id="videoFile" accept="video/*" required>
         </div>
 
         <div class="form-group">
-            <label>Target File Size (MB):</label>
-            <input type="number" id="targetSize" placeholder="e.g., 500 or 1000" min="10" required>
+            <label>Target Custom File Size (MB):</label>
+            <input type="number" id="targetSize" placeholder="e.g., 500 or 1000" min="50" value="1000" required>
+            <small style="color:#71717a; display:block; margin-top:4px;">1000 MB = 1 GB. Enter 500 for half a gigabyte.</small>
         </div>
 
         <div class="form-group">
-            <label>Target Resolution (Optional):</label>
+            <label>Output Resolution Strategy:</label>
             <select id="resolution">
+                <option value="1280:720" selected>Force Downscale to 720p (Recommended for 1GB/500MB)</option>
                 <option value="no-change">Keep Original Resolution</option>
-                <option value="256:144">144p (Very Low Quality)</option>
-                <option value="640:360">360p (Low Quality)</option>
-                <option value="854:480">480p (Standard SD)</option>
-                <option value="1280:720">720p (HD)</option>
             </select>
         </div>
 
-        <button type="submit">Start Compression</button>
+        <button type="submit" id="btnText">Start Hardcore Local Compression</button>
     </form>
 
     <div id="status"></div>
@@ -58,15 +58,21 @@
         const targetSize = document.getElementById('targetSize').value;
         const resolution = document.getElementById('resolution').value;
         const statusDiv = document.getElementById('status');
+        const btn = document.getElementById('btnText');
 
-        if (!fileInput.files.length) return alert("Please select a file!");
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        // Visual feedback
+        statusDiv.style.display = "block";
+        statusDiv.innerHTML = `⏳ <b>Streaming started!</b> reading file directly from your storage... Node.js is executing local transcoding parameters. Please do not close this window.`;
+        btn.disabled = true;
+        btn.style.background = "#52525b";
 
         const formData = new FormData();
-        formData.append('video', fileInput.files[0]);
+        formData.append('video', file);
         formData.append('targetSizeMB', targetSize);
         formData.append('resolution', resolution);
-
-        statusDiv.innerText = "🚀 Uploading and compressing your file... Please wait (This might take a while for large movies).";
 
         try {
             const response = await fetch('http://localhost:3000/compress', {
@@ -74,22 +80,24 @@
                 body: formData
             });
 
-            if (!response.ok) throw new Error('Compression failed');
+            if (!response.ok) throw new Error('Compression stream failed.');
 
-            // Trigger file download automatically when backend finishes
             const blob = await response.blob();
             const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = "compressed_" + fileInput.files[0].name;
+            a.download = `compressed_${targetSize}MB_${file.name}`;
             document.body.appendChild(a);
             a.click();
             a.remove();
             
-            statusDiv.innerText = "✅ Compression Complete! Your download has started.";
+            statusDiv.innerHTML = "✅ <b>Success!</b> The movie has been written straight back to your local Downloads folder.";
         } catch (error) {
-            statusDiv.innerText = "❌ Error compressing video. Check server logs.";
+            statusDiv.innerHTML = "❌ <b>Local Stream Interrupt:</b> The server encountered an issue compression rendering. Make sure `node server.js` is active in terminal.";
             console.error(error);
+        } finally {
+            btn.disabled = false;
+            btn.style.background = "#2563eb";
         }
     });
 </script>
