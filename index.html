@@ -25,9 +25,59 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        /* Draggable Floating Spherical Buttons Styling */
+        .draggable-sphere {
+            position: fixed;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 10px;
+            cursor: grep;
+            user-select: none;
+            touch-action: none;
+            z-index: 9999;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+        }
+        .draggable-sphere:active {
+            cursor: grabbing;
+            transform: scale(1.08);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+        }
     </style>
 </head>
 <body class="animated-rgb-bg text-gray-100 min-h-screen font-sans antialiased">
+
+    <!-- Floating Draggable Buttons Group -->
+    <!-- Button 1: Can Pay Support -->
+    <div id="sphere-pay" class="draggable-sphere bg-gradient-to-br from-pink-500 via-purple-600 to-amber-500 text-white text-center" style="right: 20px; bottom: 200px;">
+        <span class="text-lg">❤️</span>
+        <span class="uppercase tracking-tighter leading-none mt-0.5">can pay!</span>
+    </div>
+
+    <!-- Button 2: Telegram Link -->
+    <div id="sphere-tele" class="draggable-sphere bg-gradient-to-br from-cyan-500 to-blue-600 text-white" style="right: 20px; bottom: 110px;">
+        <!-- Inline SVGs ensure graphics load perfectly independent of external domains -->
+        <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+        </svg>
+        <span class="uppercase tracking-tighter text-[9px] mt-0.5 font-black">Telegram</span>
+    </div>
+
+    <!-- Button 3: Instagram Link -->
+    <div id="sphere-insta" class="draggable-sphere bg-gradient-to-br from-purple-600 via-pink-500 to-yellow-500 text-white" style="right: 20px; bottom: 20px;">
+        <svg class="w-7 h-7 stroke-current fill-none stroke-2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+        </svg>
+        <span class="uppercase tracking-tighter text-[9px] mt-0.5 font-black">Instagram</span>
+    </div>
 
     <!-- Header & Navigation -->
     <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50 p-4 shadow-2xl">
@@ -72,13 +122,6 @@
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <button 
-                        id="supportBtnTop" 
-                        onclick="toggleQrModal(true)"
-                        class="bg-gradient-to-r from-pink-500 to-amber-500 hover:from-pink-600 hover:to-amber-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md flex items-center gap-1.5 animate-pulse"
-                    >
-                        ❤️ Support Us
-                    </button>
                     <button 
                         id="authBtn" 
                         class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-700 transition-all whitespace-nowrap cursor-pointer shadow-md"
@@ -175,24 +218,20 @@
             </form>
         </section>
 
-        <!-- Dynamic Statistics Viewchart Analytics Panel (Hidden by Default) -->
+        <!-- Dynamic Statistics Analytics Panel (Viewers Metric Deleted) -->
         <section id="analyticsSection" class="hidden glass-card p-6 rounded-2xl border border-indigo-500/40 shadow-xl grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-1 flex flex-col justify-center space-y-4">
                 <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 flex items-center gap-2">
                     <span>👑 Admin Performance Panel</span>
                 </h3>
-                <p class="text-xs text-slate-400 leading-relaxed">Tracking viewer engagement trends, active downloads, and real-time package deployments across the system database structures.</p>
-                <div class="grid grid-cols-3 gap-2 pt-2">
-                    <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center">
-                        <span class="block text-xl font-black text-indigo-400" id="stat-viewers">0</span>
-                        <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Viewers</span>
-                    </div>
-                    <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center">
-                        <span class="block text-xl font-black text-purple-400" id="stat-uploads">0</span>
+                <p class="text-xs text-slate-400 leading-relaxed">Tracking platform volume logs, localized downloads counters, and real-time database allocation structures.</p>
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 text-center">
+                        <span class="block text-2xl font-black text-purple-400" id="stat-uploads">0</span>
                         <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Published</span>
                     </div>
-                    <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800 text-center">
-                        <span class="block text-xl font-black text-emerald-400" id="stat-downloads">0</span>
+                    <div class="bg-slate-950/40 p-4 rounded-xl border border-slate-800 text-center">
+                        <span class="block text-2xl font-black text-emerald-400" id="stat-downloads">0</span>
                         <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Downloads</span>
                     </div>
                 </div>
@@ -210,18 +249,6 @@
             <div id="noAssetsMessage" class="hidden text-center text-slate-500 py-20">
                 <p class="text-xl font-medium">No files found fitting those parameters.</p>
             </div>
-        </section>
-
-        <!-- Bottom Support QR Section Banner -->
-        <section class="glass-card p-6 rounded-2xl border border-pink-500/20 text-center max-w-2xl mx-auto shadow-2xl">
-            <h4 class="text-md font-bold text-slate-200 mb-2">🎁 Enjoying the Platform?</h4>
-            <p class="text-xs text-slate-400 mb-4">Every contribution helps maintain server bandwidth configurations and compression services.</p>
-            <button 
-                onclick="toggleQrModal(true)" 
-                class="bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:from-purple-500 hover:via-pink-500 hover:to-amber-400 text-white font-extrabold py-2.5 px-6 rounded-xl transition-all shadow-lg tracking-wide text-xs cursor-pointer inline-flex items-center gap-2"
-            >
-                <span>📱 Show Donation QR Code</span>
-            </button>
         </section>
     </main>
 
@@ -261,7 +288,6 @@
         
         // Analytics Storage Tracking Configuration Metrics
         let metrics = {
-            viewers: Math.floor(Math.random() * (160 - 80) + 80),
             uploads: 0,
             downloads: parseInt(localStorage.getItem('ms_total_downloads')) || 0
         };
@@ -338,22 +364,20 @@
             metricsChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Site Viewers', 'Published Items', 'Total Downloads'],
+                    labels: ['Published Items', 'Total Downloads'],
                     datasets: [{
-                        data: [metrics.viewers, metrics.uploads, metrics.downloads],
+                        data: [metrics.uploads, metrics.downloads],
                         backgroundColor: [
-                            'rgba(99, 102, 241, 0.4)', 
                             'rgba(168, 85, 247, 0.4)', 
                             'rgba(16, 185, 129, 0.4)'
                         ],
                         borderColor: [
-                            '#6366f1',
                             '#a855f7',
                             '#10b981'
                         ],
                         borderWidth: 2,
                         borderRadius: 8,
-                        barThickness: 35
+                        barThickness: 45
                     }]
                 },
                 options: {
@@ -377,20 +401,13 @@
             updateStatsDOM();
         }
 
-        // Fluctuating engine for viewers metrics running in background
-        setInterval(() => {
-            metrics.viewers = Math.max(10, metrics.viewers + Math.floor(Math.random() * 7) - 3);
-            if (isAdmin) updateStatsDOM();
-        }, 4000);
-
         function updateStatsDOM() {
             if(!isAdmin) return;
-            document.getElementById('stat-viewers').innerText = metrics.viewers;
             document.getElementById('stat-uploads').innerText = metrics.uploads;
             document.getElementById('stat-downloads').innerText = metrics.downloads;
             
             if (metricsChartInstance) {
-                metricsChartInstance.data.datasets[0].data = [metrics.viewers, metrics.uploads, metrics.downloads];
+                metricsChartInstance.data.datasets[0].data = [metrics.uploads, metrics.downloads];
                 metricsChartInstance.update();
             }
         }
@@ -425,7 +442,7 @@
             const uid = document.getElementById('adminId').value;
             const upass = document.getElementById('adminPassword').value;
 
-            // Updated Admin Verification Configuration Engine
+            // Verified Configured Credentials Match Check
             if(uid === "slot69" && upass === "25801@Yeasin") {
                 isAdmin = true;
                 loginModal.classList.add('hidden');
@@ -465,7 +482,6 @@
                 }
             });
 
-            // Re-render Dynamic Upload Subforms Text Elements contextually
             if (type === 'movies') {
                 nameLabel.innerText = "Movie Name";
                 fileLabel.innerText = "Video File";
@@ -483,7 +499,6 @@
                 submitBtn.innerText = "Publish Sound Track";
             }
 
-            // Repopulate specific genres fields array engine structures
             assetGenre.innerHTML = "";
             genreMap[type].forEach(g => {
                 const opt = document.createElement('option');
@@ -597,7 +612,6 @@
             });
         }
 
-        // Like / Engagement Event Handling Subroutine
         window.likeAsset = function(id) {
             let itemStore = currentTab;
             let dataset = (itemStore === 'movies') ? videoLibrary : (itemStore === 'apks') ? apkLibrary : musicLibrary;
@@ -620,7 +634,6 @@
             };
         };
 
-        // Simulated Download Handler Engine Counter Metric
         window.triggerDownload = function(id) {
             metrics.downloads++;
             localStorage.setItem('ms_total_downloads', metrics.downloads);
@@ -628,7 +641,6 @@
             alert("Your content payload transmission has initialized processing pipeline safely.");
         };
 
-        // Admin Controlled Object Purging Subroutine Pipeline
         window.deleteAsset = function(id) {
             if(!isAdmin || !db) return;
             if(!confirm("Are you absolutely sure you want to scrub this entry from the system repository permanently?")) return;
@@ -645,6 +657,65 @@
                 applyFilters();
             };
         };
+
+        // Advanced Multi-Gesture/Mouse Pointer Drag Processing Engine Subroutines
+        function initializeDraggableSphere(elementId, onClickCallback) {
+            const el = document.getElementById(elementId);
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            // Handle Pointer Down (Both Touch and Mouse inputs handled contextually)
+            el.addEventListener('pointerdown', function(e) {
+                isDragging = false;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                const rect = el.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                
+                el.setPointerCapture(e.pointerId);
+            });
+
+            // Handle Move Vectors
+            el.addEventListener('pointermove', function(e) {
+                if (e.buttons !== 1) return; // Check primary click capture states
+                const currentX = e.clientX;
+                const currentY = e.clientY;
+                
+                // Set boundary variance offset criteria to identify micro-drags
+                if (Math.abs(currentX - startX) > 5 || Math.abs(currentY - startY) > 5) {
+                    isDragging = true;
+                }
+
+                if (isDragging) {
+                    let newLeft = initialX + (currentX - startX);
+                    let newTop = initialY + (currentY - startY);
+
+                    // Viewport constraint protection checks
+                    newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - 70));
+                    newTop = Math.max(0, Math.min(newTop, window.innerHeight - 70));
+
+                    el.style.left = newLeft + 'px';
+                    el.style.top = newTop + 'px';
+                    el.style.right = 'auto';
+                    el.style.bottom = 'auto';
+                }
+            });
+
+            // Handle Drag Lifecycle Terminations
+            el.addEventListener('pointerup', function(e) {
+                el.releasePointerCapture(e.pointerId);
+                if (!isDragging) {
+                    onClickCallback();
+                }
+            });
+        }
+
+        // Bind interactive target actions to Floating Modules
+        initializeDraggableSphere('sphere-pay', () => toggleQrModal(true));
+        initializeDraggableSphere('sphere-tele', () => window.open('https://t.me/movieslots1', '_blank'));
+        initializeDraggableSphere('sphere-insta', () => window.open('https://www.instagram.com/slot696969?igsh=MXNxNTRiMzF1ZngycA==', '_blank'));
     </script>
 </body>
 </html>
