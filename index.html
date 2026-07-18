@@ -3,641 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieSlot - Premium Media Library</title>
-    <!-- Tailwind CSS for modern styling -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- JSZip library for creating zip files completely in-browser -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <title>Custom Video Compressor</title>
     <style>
-        /* Smooth High-End RGB Neon Background Animation */
-        @keyframes rgbGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animated-rgb-bg {
-            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #2e1065, #3b0764, #0f172a);
-            background-size: 400% 400%;
-            animation: rgbGradient 15s ease infinite;
-        }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input, select, button { width: 100%; padding: 12px; border-radius: 4px; border: none; box-sizing: border-box; }
+        input[type="file"], select { background: #333; color: white; }
+        input[type="number"] { background: #333; color: white; }
+        button { background: #00adb5; color: white; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #008c9e; }
+        #status { margin-top: 20px; text-align: center; color: #00adb5; font-weight: bold; }
     </style>
 </head>
-<body class="animated-rgb-bg text-gray-100 min-h-screen font-sans antialiased">
+<body>
 
-    <!-- Header & Navigation -->
-    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 sticky top-0 z-50 p-4 shadow-2xl">
-        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
-            
-            <!-- Left Side: App Logo & Controls -->
-            <div class="flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto flex-1">
-                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-wider whitespace-nowrap drop-shadow-sm">🎬 MovieSlots</h1>
-                
-                <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
-                    <input 
-                        type="text" 
-                        id="searchBar" 
-                        placeholder="Search assets..." 
-                        class="w-full md:max-w-md bg-slate-800/90 text-white placeholder-slate-400 rounded-xl px-5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 shadow-inner"
-                    >
-                    <select 
-                        id="genreFilter" 
-                        class="w-full sm:w-56 bg-slate-800/90 text-white rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-600/60 cursor-pointer shadow-inner"
-                    >
-                        <option value="all">All Genres / Types</option>
-                        <option value="Romantic">Romantic</option>
-                        <option value="Psycho">Psycho</option>
-                        <option value="Comedy">Comedy</option>
-                        <option value="Action">Action</option>
-                        <option value="Drama">Drama</option>
-                        <option value="Tools">Tools (APK)</option>
-                        <option value="Games">Games (APK)</option>
-                        <option value="Pop">Pop (Music)</option>
-                        <option value="Rock">Rock (Music)</option>
-                        <option value="Lo-Fi">Lo-Fi (Music)</option>
-                    </select>
-                </div>
-            </div>
-            
-            <!-- Library Module Switcher & One-Click ZIP Download All -->
-            <div class="flex flex-wrap items-center gap-4">
-                <button 
-                    id="downloadZipBtn"
-                    onclick="downloadAllAsZip()" 
-                    class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-xs font-bold py-2 px-4 rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                    📦 Download All (ZIP)
-                </button>
-
-                <div class="flex gap-2 p-1 bg-slate-950/60 border border-slate-700/50 rounded-xl">
-                    <button id="tab-movies" onclick="switchLibraryTab('movies')" class="px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition-all cursor-pointer">Movies</button>
-                    <button id="tab-apks" onclick="switchLibraryTab('apks')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">APKs</button>
-                    <button id="tab-music" onclick="switchLibraryTab('music')" class="px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Music</button>
-                </div>
-            </div>
-            
-            <!-- Right Side: Compact Admin Controls Area -->
-            <div class="flex items-center gap-2 justify-end w-full lg:w-auto border-t lg:border-t-0 border-slate-700/50 pt-4 lg:pt-0">
-                <span id="roleBadge" class="bg-slate-800 text-[10px] text-slate-400 font-medium px-2 py-0.5 rounded border border-slate-700 whitespace-nowrap">Guest Mode</span>
-                <button 
-                    id="authBtn" 
-                    class="bg-purple-600 hover:bg-purple-500 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md"
-                >
-                    Admin Login
-                </button>
-            </div>
+<div class="card">
+    <h2>🎬 Custom Video Compressor</h2>
+    <hr style="border-color:#333; margin-bottom:20px;">
+    
+    <form id="uploadForm">
+        <div class="form-group">
+            <label>Select Movie File (Up to 10GB+):</label>
+            <input type="file" id="videoFile" accept="video/*" required>
         </div>
-    </header>
 
-    <!-- Admin Login Modal -->
-    <div id="loginModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md">
-        <div class="bg-slate-900 border border-slate-700/60 p-6 rounded-2xl shadow-2xl w-full max-w-sm">
-            <h3 class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-4">Admin Authentication</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Admin ID</label>
-                    <input type="text" id="adminId" class="w-full bg-slate-800 rounded-lg px-3 py-2 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
-                    <input type="password" id="adminPassword" class="w-full bg-slate-800 rounded-lg px-3 py-2 text-white border border-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                </div>
-                <p id="loginError" class="text-xs text-rose-400 hidden">Invalid ID or Password!</p>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button id="closeModalBtn" class="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-lg cursor-pointer">Cancel</button>
-                    <button id="submitLoginBtn" class="bg-purple-600 hover:bg-purple-500 text-sm px-4 py-2 rounded-lg font-bold cursor-pointer">Login</button>
-                </div>
-            </div>
+        <div class="form-group">
+            <label>Target File Size (MB):</label>
+            <input type="number" id="targetSize" placeholder="e.g., 500 or 1000" min="10" required>
         </div>
-    </div>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-        
-        <!-- Upload Section (Visible to Admin Only) -->
-        <section id="adminUploadSection" class="hidden glass-card p-6 rounded-2xl border border-purple-500/30 shadow-2xl">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <h2 class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-purple-400 flex items-center gap-2">
-                    <span>⚡ Admin Control Panel</span>
-                </h2>
-                <!-- Admin Upload Sub-tabs Switcher -->
-                <div class="flex bg-slate-950/40 p-1 border border-slate-700/60 rounded-xl">
-                    <button type="button" onclick="setUploadType('movies')" id="upload-tab-movies" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white transition-all cursor-pointer">Upload Movie</button>
-                    <button type="button" onclick="setUploadType('apks')" id="upload-tab-apks" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Upload APK</button>
-                    <button type="button" onclick="setUploadType('music')" id="upload-tab-music" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer">Upload Music</button>
-                </div>
-            </div>
+        <div class="form-group">
+            <label>Target Resolution (Optional):</label>
+            <select id="resolution">
+                <option value="no-change">Keep Original Resolution</option>
+                <option value="256:144">144p (Very Low Quality)</option>
+                <option value="640:360">360p (Low Quality)</option>
+                <option value="854:480">480p (Standard SD)</option>
+                <option value="1280:720">720p (HD)</option>
+            </select>
+        </div>
 
-            <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div class="md:col-span-1">
-                    <label id="nameLabel" class="block text-sm font-semibold text-slate-300 mb-1">Movie Name</label>
-                    <input type="text" id="assetName" required placeholder="Title" class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Genre / Tag</label>
-                    <select id="assetGenre" required class="w-full bg-slate-800/90 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 border border-slate-700">
-                        <option value="Romantic">Romantic</option>
-                        <option value="Psycho">Psycho</option>
-                        <option value="Comedy">Comedy</option>
-                        <option value="Action">Action</option>
-                        <option value="Drama">Drama</option>
-                    </select>
-                </div>
-                <div>
-                    <label id="fileLabel" class="block text-sm font-semibold text-slate-300 mb-1">Video File</label>
-                    <input type="file" id="assetFile" accept="video/*" required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-500 file:transition-all cursor-pointer">
-                </div>
-                <button type="submit" id="submitBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-lg w-full disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed cursor-pointer">
-                    Publish Movie
-                </button>
-            </form>
-        </section>
+        <button type="submit">Start Compression</button>
+    </form>
 
-        <!-- Dynamic Content Display Dashboard -->
-        <section>
-            <div id="assetGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Dynamic component cards populated asynchronously by JavaScript -->
-            </div>
-            <div id="noAssetsMessage" class="hidden text-center text-slate-500 py-20">
-                <p class="text-xl font-medium">No files found fitting those parameters.</p>
-            </div>
-        </section>
-    </main>
+    <div id="status"></div>
+</div>
 
-    <script>
-        // DOM bindings
-        const authBtn = document.getElementById('authBtn');
-        const loginModal = document.getElementById('loginModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const submitLoginBtn = document.getElementById('submitLoginBtn');
-        const roleBadge = document.getElementById('roleBadge');
-        const adminUploadSection = document.getElementById('adminUploadSection');
-        const uploadForm = document.getElementById('uploadForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const assetGrid = document.getElementById('assetGrid');
-        const searchBar = document.getElementById('searchBar');
-        const genreFilter = document.getElementById('genreFilter');
-        const noAssetsMessage = document.getElementById('noAssetsMessage');
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileInput = document.getElementById('videoFile');
+        const targetSize = document.getElementById('targetSize').value;
+        const resolution = document.getElementById('resolution').value;
+        const statusDiv = document.getElementById('status');
 
-        // Form Label Context Variables
-        const nameLabel = document.getElementById('nameLabel');
-        const fileLabel = document.getElementById('fileLabel');
-        const assetFile = document.getElementById('assetFile');
-        const assetGenre = document.getElementById('assetGenre');
+        if (!fileInput.files.length) return alert("Please select a file!");
 
-        // State Machine Storage
-        let isAdmin = false;
-        let currentTab = 'movies'; 
-        let currentUploadType = 'movies'; 
-        
-        // Data Store Buffers
-        let videoLibrary = [];
-        let apkLibrary = [];
-        let musicLibrary = [];
-        
-        let db = null;
-        let objectUrls = [];
-        let likedItems = JSON.parse(localStorage.getItem('cinehub_liked_items')) || [];
+        const formData = new FormData();
+        formData.append('video', fileInput.files[0]);
+        formData.append('targetSizeMB', targetSize);
+        formData.append('resolution', resolution);
 
-        // Dynamic Genre Engine configurations mapping
-        const genreMap = {
-            movies: ['Romantic', 'Psycho', 'Comedy', 'Action', 'Drama'],
-            apks: ['Tools', 'Games'],
-            music: ['Pop', 'Rock', 'Lo-Fi']
-        };
+        statusDiv.innerText = "🚀 Uploading and compressing your file... Please wait (This might take a while for large movies).";
 
-        // Assert Persistent Data Privileges
-        if (navigator.storage && navigator.storage.persist) {
-            navigator.storage.persist().then(granted => {
-                if (granted) console.log("Persistent state storage locked.");
-            });
-        }
-
-        // Initialize Scaled Database Architecture
-        const dbName = "CineHubDatabase";
-        const request = indexedDB.open(dbName, 2);
-
-        request.onupgradeneeded = function(e) {
-            db = e.target.result;
-            if (!db.objectStoreNames.contains("movies")) {
-                db.createObjectStore("movies", { keyPath: "id" });
-            }
-            if (!db.objectStoreNames.contains("apks")) {
-                db.createObjectStore("apks", { keyPath: "id" });
-            }
-            if (!db.objectStoreNames.contains("music")) {
-                db.createObjectStore("music", { keyPath: "id" });
-            }
-        };
-
-        request.onsuccess = function(e) {
-            db = e.target.result;
-            loadAllLibraries();
-        };
-
-        request.onerror = function() {
-            alert("Database interface down. Ensure client device grants sandbox storage privileges.");
-        };
-
-        function loadAllLibraries() {
-            if (!db) return;
-            let counter = 0;
-            const checkAndRender = () => {
-                counter++;
-                if (counter === 3) applyFilters();
-            };
-
-            db.transaction(["movies"], "readonly").objectStore("movies").getAll().onsuccess = function(e) {
-                videoLibrary = e.target.result || [];
-                checkAndRender();
-            };
-            db.transaction(["apks"], "readonly").objectStore("apks").getAll().onsuccess = function(e) {
-                apkLibrary = e.target.result || [];
-                checkAndRender();
-            };
-            db.transaction(["music"], "readonly").objectStore("music").getAll().onsuccess = function(e) {
-                musicLibrary = e.target.result || [];
-                checkAndRender();
-            };
-        }
-
-        window.switchLibraryTab = function(tabName) {
-            currentTab = tabName;
-            ['movies', 'apks', 'music'].forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                if (t === tabName) {
-                    btn.className = "px-4 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow transition-all cursor-pointer";
-                } else {
-                    btn.className = "px-4 py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition-all cursor-pointer";
-                }
-            });
-            applyFilters();
-        };
-
-        window.setUploadType = function(type) {
-            currentUploadType = type;
-            ['movies', 'apks', 'music'].forEach(t => {
-                const btn = document.getElementById(`upload-tab-${t}`);
-                if (t === type) {
-                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-600 text-white transition-all cursor-pointer";
-                } else {
-                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all cursor-pointer";
-                }
+        try {
+            const response = await fetch('http://localhost:3000/compress', {
+                method: 'POST',
+                body: formData
             });
 
-            if (type === 'movies') {
-                nameLabel.innerText = "Movie Name";
-                fileLabel.innerText = "Video File";
-                assetFile.accept = "video/*";
-                submitBtn.innerText = "Publish Movie";
-            } else if (type === 'apks') {
-                nameLabel.innerText = "Application Name";
-                fileLabel.innerText = "Android Binary (APK)";
-                assetFile.accept = ".apk";
-                submitBtn.innerText = "Publish App Package";
-            } else if (type === 'music') {
-                nameLabel.innerText = "Track Name / Title";
-                fileLabel.innerText = "Audio File";
-                assetFile.accept = "audio/*";
-                submitBtn.innerText = "Publish Track";
-            }
+            if (!response.ok) throw new Error('Compression failed');
 
-            assetGenre.innerHTML = '';
-            genreMap[type].forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g;
-                opt.innerText = g;
-                assetGenre.appendChild(opt);
-            });
-        };
-
-        authBtn.addEventListener('click', () => {
-            if (isAdmin) {
-                isAdmin = false;
-                authBtn.innerText = "Admin Login";
-                authBtn.className = "bg-purple-600 hover:bg-purple-500 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md";
-                roleBadge.innerText = "Guest Mode";
-                roleBadge.className = "bg-slate-800 text-[10px] text-slate-400 font-medium px-2 py-0.5 rounded border border-slate-700 whitespace-nowrap";
-                adminUploadSection.classList.add('hidden');
-                applyFilters(); 
-            } else {
-                loginModal.classList.remove('hidden');
-            }
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            loginModal.classList.add('hidden');
-            document.getElementById('loginError').classList.add('hidden');
-        });
-
-        submitLoginBtn.addEventListener('click', () => {
-            const idInput = document.getElementById('adminId').value;
-            const passInput = document.getElementById('adminPassword').value;
-
-            if (idInput === "slot69" && passInput === "25801@Yeasin") {
-                isAdmin = true;
-                loginModal.classList.add('hidden');
-                document.getElementById('adminId').value = '';
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('loginError').classList.add('hidden');
-                
-                authBtn.innerText = "Log Out";
-                authBtn.className = "bg-rose-600 hover:bg-rose-500 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all whitespace-nowrap cursor-pointer shadow-md";
-                roleBadge.innerText = "Admin Access";
-                roleBadge.className = "bg-amber-500/20 text-[10px] text-amber-400 font-bold px-2 py-0.5 rounded border border-amber-500/30 whitespace-nowrap";
-                adminUploadSection.classList.remove('hidden');
-                setUploadType('movies');
-                applyFilters();
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
-            }
-        });
-
-        uploadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!isAdmin) return;
-
-            const nameInput = document.getElementById('assetName');
-            const fileInput = document.getElementById('assetFile');
-            const file = fileInput.files[0];
-
-            if (!file) return;
-
-            submitBtn.innerText = "Uploading to Database Storage Layer...";
-            submitBtn.disabled = true;
-
-            const targetStore = currentUploadType;
-            const newAsset = {
-                id: Date.now(),
-                name: nameInput.value.trim(),
-                genre: assetGenre.value,
-                likes: 0,
-                fileBlob: file
-            };
-
-            const transaction = db.transaction([targetStore], "readwrite");
-            const store = transaction.objectStore(targetStore);
-            const addRequest = store.add(newAsset);
-
-            addRequest.onsuccess = function() {
-                if (targetStore === 'movies') videoLibrary.push(newAsset);
-                else if (targetStore === 'apks') apkLibrary.push(newAsset);
-                else if (targetStore === 'music') musicLibrary.push(newAsset);
-                
-                uploadForm.reset();
-                submitBtn.disabled = false;
-                setUploadType(currentUploadType);
-                applyFilters();
-            };
-
-            addRequest.onerror = function() {
-                alert("Upload failed inside DB write sequence.");
-                submitBtn.disabled = false;
-                setUploadType(currentUploadType);
-            };
-        });
-
-        // Delete asset function
-        window.deleteAsset = function(id, storeType) {
-            if (!isAdmin) return;
-            if (!confirm("Are you sure you want to permanently delete this asset?")) return;
-
-            const transaction = db.transaction([storeType], "readwrite");
-            const store = transaction.objectStore(storeType);
-            const deleteRequest = store.delete(id);
-
-            deleteRequest.onsuccess = function() {
-                if (storeType === 'movies') videoLibrary = videoLibrary.filter(item => item.id !== id);
-                else if (storeType === 'apks') apkLibrary = apkLibrary.filter(item => item.id !== id);
-                else if (storeType === 'music') musicLibrary = musicLibrary.filter(item => item.id !== id);
-                applyFilters();
-            };
-        };
-
-        // Like handling engine
-        window.toggleLike = function(id) {
-            let itemStore = currentTab;
-            let currentList = currentTab === 'movies' ? videoLibrary : (currentTab === 'apks' ? apkLibrary : musicLibrary);
-            let item = currentList.find(i => i.id === id);
-            if (!item) return;
-
-            const likedIndex = likedItems.indexOf(id);
-            if (likedIndex === -1) {
-                likedItems.push(id);
-                item.likes = (item.likes || 0) + 1;
-            } else {
-                likedItems.splice(likedIndex, 1);
-                item.likes = Math.max(0, (item.likes || 0) - 1);
-            }
-
-            localStorage.setItem('cinehub_liked_items', JSON.stringify(likedItems));
-
-            // Save state to IndexedDB persistent store
-            const transaction = db.transaction([itemStore], "readwrite");
-            const store = transaction.objectStore(itemStore);
-            store.put(item);
-
-            applyFilters();
-        };
-
-        // Filter and Rendering Core Pipeline
-        function applyFilters() {
-            // Free memory of existing Blob Object URLs to prevent memory leak
-            objectUrls.forEach(url => URL.revokeObjectURL(url));
-            objectUrls = [];
-
-            const query = searchBar.value.toLowerCase().trim();
-            const selectedGenre = genreFilter.value;
-
-            let sourceList = [];
-            if (currentTab === 'movies') sourceList = videoLibrary;
-            else if (currentTab === 'apks') sourceList = apkLibrary;
-            else if (currentTab === 'music') sourceList = musicLibrary;
-
-            const filteredList = sourceList.filter(item => {
-                const matchesSearch = item.name.toLowerCase().includes(query);
-                const matchesGenre = selectedGenre === 'all' || item.genre === selectedGenre;
-                return matchesSearch && matchesGenre;
-            });
-
-            renderDashboard(filteredList);
-        }
-
-        function renderDashboard(items) {
-            assetGrid.innerHTML = '';
-            if (items.length === 0) {
-                noAssetsMessage.classList.remove('hidden');
-                return;
-            }
-            noAssetsMessage.classList.add('hidden');
-
-            items.forEach(asset => {
-                const card = document.createElement('div');
-                card.className = "glass-card rounded-2xl overflow-hidden p-5 flex flex-col justify-between border border-slate-700/40 shadow-lg relative group";
-
-                // Base Information Template
-                let detailsHTML = `
-                    <div class="mb-4">
-                        <div class="flex justify-between items-start gap-2 mb-2">
-                            <span class="bg-purple-900/50 border border-purple-500/30 text-[11px] text-purple-300 font-bold px-2 py-0.5 rounded-full">${asset.genre}</span>
-                            ${isAdmin ? `<button onclick="deleteAsset(${asset.id}, '${currentTab}')" class="text-rose-400 hover:text-rose-300 text-xs font-semibold cursor-pointer">Delete</button>` : ''}
-                        </div>
-                        <h3 class="text-lg font-bold text-white line-clamp-1">${asset.name}</h3>
-                    </div>
-                `;
-
-                // Content Render engine inside sandbox
-                let playerHTML = '';
-                if (asset.fileBlob) {
-                    const localBlobUrl = URL.createObjectURL(asset.fileBlob);
-                    objectUrls.push(localBlobUrl);
-
-                    if (currentTab === 'movies') {
-                        playerHTML = `
-                            <video src="${localBlobUrl}" controls class="w-full h-44 bg-black rounded-lg mb-4 object-contain border border-slate-800"></video>
-                        `;
-                    } else if (currentTab === 'apks') {
-                        playerHTML = `
-                            <div class="flex flex-col items-center justify-center h-44 bg-slate-950/40 rounded-lg mb-4 border border-slate-800 p-4">
-                                <span class="text-4xl mb-2">🤖</span>
-                                <span class="text-xs text-slate-400 text-center font-mono line-clamp-1">${asset.fileBlob.name || 'Android App Package'}</span>
-                                <a href="${localBlobUrl}" download="${asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.apk" class="mt-3 bg-purple-600 hover:bg-purple-500 text-xs font-bold py-1.5 px-4 rounded-lg transition-all cursor-pointer shadow-md">Download APK</a>
-                            </div>
-                        `;
-                    } else if (currentTab === 'music') {
-                        playerHTML = `
-                            <div class="flex flex-col justify-between h-44 bg-slate-950/40 rounded-lg mb-4 border border-slate-800 p-4 relative">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-3xl">🎵</span>
-                                    <span class="text-xs text-slate-300 line-clamp-2">${asset.name}</span>
-                                </div>
-                                <audio src="${localBlobUrl}" controls class="w-full mt-2"></audio>
-                            </div>
-                        `;
-                    }
-                }
-
-                // Append Card Actions
-                const isLiked = likedItems.includes(asset.id);
-                const actionHTML = `
-                    <div class="flex items-center justify-between border-t border-slate-800 pt-3 mt-auto">
-                        <button onclick="toggleLike(${asset.id})" class="flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${isLiked ? 'text-pink-500' : 'text-slate-400 hover:text-slate-200'}">
-                            <span>${isLiked ? '❤️' : '🤍'}</span>
-                            <span>${asset.likes || 0} Likes</span>
-                        </button>
-                        ${currentTab !== 'apks' && asset.fileBlob ? `
-                            <button onclick="individualDownload(${asset.id})" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg cursor-pointer transition-all">
-                                📥 Save Offline
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
-
-                card.innerHTML = detailsHTML + playerHTML + actionHTML;
-                assetGrid.appendChild(card);
-            });
-        }
-
-        // Single manual recovery download
-        window.individualDownload = function(id) {
-            let list = currentTab === 'movies' ? videoLibrary : (currentTab === 'apks' ? apkLibrary : musicLibrary);
-            let item = list.find(i => i.id === id);
-            if (!item || !item.fileBlob) return;
-
+            // Trigger file download automatically when backend finishes
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(item.fileBlob);
-            const ext = currentTab === 'music' ? 'mp3' : (currentTab === 'apks' ? 'apk' : 'mp4');
-            a.download = `${item.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${ext}`;
+            a.href = downloadUrl;
+            a.download = "compressed_" + fileInput.files[0].name;
             document.body.appendChild(a);
             a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-        };
-
-        // --- NEW ONE-CLICK OFFLINE "ZIP COMPRESSION & DOWNLOAD ALL" ENGINE ---
-        window.downloadAllAsZip = async function() {
-            let activeList = [];
-            let extension = 'mp4';
-            let folderName = 'My_Movies';
-
-            if (currentTab === 'movies') {
-                activeList = videoLibrary;
-                extension = 'mp4';
-                folderName = 'My_Movies';
-            } else if (currentTab === 'apks') {
-                activeList = apkLibrary;
-                extension = 'apk';
-                folderName = 'My_APKs';
-            } else if (currentTab === 'music') {
-                activeList = musicLibrary;
-                extension = 'mp3';
-                folderName = 'My_Music';
-            }
-
-            if (!activeList || activeList.length === 0) {
-                alert("No files found to pack in this category!");
-                return;
-            }
-
-            // Ensure JSZip has loaded successfully
-            if (typeof JSZip === "undefined") {
-                alert("The ZIP packaging engine is still loading. Please connect to the internet once to load the script.");
-                return;
-            }
-
-            const zipBtn = document.getElementById('downloadZipBtn');
-            const originalText = zipBtn.innerHTML;
-
-            // Update UI State to reflect packaging process
-            zipBtn.disabled = true;
-            zipBtn.innerHTML = `🌀 Packing... 0%`;
-
-            try {
-                const zip = new JSZip();
-                const targetFolder = zip.folder(folderName);
-
-                // Add each blob object sequentially to the ZIP directory
-                activeList.forEach(asset => {
-                    if (asset.fileBlob) {
-                        const safeName = asset.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                        targetFolder.file(`${safeName}.${extension}`, asset.fileBlob);
-                    }
-                });
-
-                // Generate the compressed file asynchronously
-                const content = await zip.generateAsync({ type: "blob" }, (metadata) => {
-                    zipBtn.innerHTML = `🌀 Packing... ${Math.round(metadata.percent)}%`;
-                });
-
-                // Create a temporary object URL and trigger download
-                const blobUrl = URL.createObjectURL(content);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = `${folderName.toLowerCase()}_archive_${Date.now()}.zip`;
-                document.body.appendChild(a);
-                a.click();
-                
-                // Cleanup browser resources
-                document.body.removeChild(a);
-                URL.revokeObjectURL(blobUrl);
-
-            } catch (error) {
-                console.error("Zip packaging failed:", error);
-                alert("Failed to package files inside ZIP: " + error.message);
-            } finally {
-                // Reset UI State
-                zipBtn.disabled = false;
-                zipBtn.innerHTML = originalText;
-            }
-        };
-
-        // Real-time Event Handling Listeners
-        searchBar.addEventListener('input', applyFilters);
-        genreFilter.addEventListener('change', applyFilters);
-
-    </script>
+            a.remove();
+            
+            statusDiv.innerText = "✅ Compression Complete! Your download has started.";
+        } catch (error) {
+            statusDiv.innerText = "❌ Error compressing video. Check server logs.";
+            console.error(error);
+        }
+    });
+</script>
 </body>
 </html>
